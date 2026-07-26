@@ -584,6 +584,14 @@ tr:hover td{background:#f0f4ff}
       <div id="xp-methodwrap"></div>
     </div>
     <div class="fg"><label>Cost (MVR) <span id="log-mcost-hint" style="font-weight:400;text-transform:none;color:#6b6b6b"></span></label><input id="log-mcost" type="number" placeholder="0"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:2px 0 8px"><input type="checkbox" id="log-mbill" onchange="onBillToggle()" style="width:14px;height:14px"> Extra — NOT in the quoted price, bill to client at the end</label>
+    <div id="log-bill-wrap" style="display:none">
+      <div class="fr">
+        <div class="fg"><label>Bill client (MVR)</label><input id="log-mbillamt" type="number" placeholder="same as cost"><div class="hint" style="font-size:10px;color:#6b6b6b;margin-top:3px">What the client will be charged — add margin if you wish</div></div>
+        <div class="fg"><label>For which work (optional)</label><select id="log-mbillwork"></select></div>
+      </div>
+      <div style="background:#FDF6E3;border:1px solid #E8D48B;border-radius:8px;padding:9px 13px;font-size:11px;color:#6d5a12;margin-bottom:10px">Accumulates under "Billable extras" and joins the client's bill when the linked work is completed (immediately if not linked). It will appear on the invoice.</div>
+    </div>
   </div>
   <div id="lf-note" style="display:none">
     <div class="fg"><label>Note</label><textarea id="log-note" placeholder="Progress update, quote discussion…"></textarea></div>
@@ -1005,21 +1013,22 @@ function siteStats(s){
   if(!Array.isArray(s.works))s.works=[];
   if(typeof s.matSettlements === 'string'){try{s.matSettlements=JSON.parse(s.matSettlements);}catch(e){s.matSettlements=[];}}
   if(!Array.isArray(s.matSettlements))s.matSettlements=[];
-  let lCost=0,mCost=0,localPurchCost=0,lIn=0,mIn=0,advanceIn=0;
+  let lCost=0,mCost=0,localPurchCost=0,lIn=0,mIn=0,advanceIn=0,extrasBill=0;
   (s.log||[]).forEach(e=>{
     if(e.type==='labour'||e.type==='roster-cost'||e.type==='day-worker'||e.type==='overtime'){lCost+=e.cost||0}
     if(e.type==='material'){ if(e.matKey){mCost+=e.cost||0} else {localPurchCost+=e.cost||0} }
     if(e.type==='return'){mCost-=e.cost||0}
     if(e.type==='local-purchase'){localPurchCost+=e.amount||0}
     if(e.type==='income'){lIn+=e.lIn||0;mIn+=e.mIn||0;advanceIn+=(e.advance||0)+(e.unsplit?(e.amount||0):0);}
+    if(e.billable)extrasBill+=e.billAmount||0;
   });
   mCost=Math.max(0,Math.round(mCost*100)/100);
   const totalQuote=(s.works||[]).reduce((a,w)=>a+w.price,0)||(s.lq||0);
   const totalMatCost=mCost+localPurchCost;
   const totalCost=lCost+totalMatCost;
-  const totalProfit=totalQuote-totalCost;
+  const totalProfit=totalQuote+extrasBill-totalCost;
   const settledAmt=(s.matSettlements||[]).reduce((a,x)=>a+x.amount,0);
-  return{lCost,mCost,localPurchCost,totalMatCost,totalCost,lIn,mIn,advanceIn,
+  return{lCost,mCost,localPurchCost,totalMatCost,totalCost,lIn,mIn,advanceIn,extrasBill,
     totalQuote,totalProfit,
     lProfit:totalQuote-lCost,
     mProfit:(s.mq||0)-totalMatCost,
@@ -1143,7 +1152,7 @@ function dashRealized(from,to){
   let receivable=0;
   (D.sites||[]).forEach(s=>{
     const st=siteStats(s);
-    receivable+=Math.max(0,(st.totalQuote||0)-(st.lIn+st.mIn+st.advanceIn));
+    receivable+=Math.max(0,(st.totalQuote||0)+(st.extrasBill||0)-(st.lIn+st.mIn+st.advanceIn));
   });
   return{income,costs,profit:Math.round((income-costs)*100)/100,worksDoneCount,worksDoneValue,receivable};
 }
@@ -1204,10 +1213,21 @@ function clientDue(s){
   const doneWorks=(s.works||[]).filter(w=>(w.status||'active')==='done');
   let doneValue=doneWorks.reduce((a,w)=>a+(w.price||0),0);
   if(!doneWorks.length&&s.status==='done')doneValue=st.totalQuote;   // legacy completed site
-  doneValue=Math.round(doneValue*100)/100;
-  return{doneCount:doneWorks.length||(s.status==='done'&&doneValue>0?1:0),doneValue,received,agreed:st.totalQuote,
+  // Billable extras: chargeable when their linked work is done
+  // (immediately when not linked, and always once the site is completed)
+  let extrasAll=0,extrasDue=0;
+  (s.log||[]).forEach(e=>{
+    if(!e.billable)return;
+    const b=e.billAmount||0;extrasAll+=b;
+    if(s.status==='done'||!e.billWorkId){extrasDue+=b;return;}
+    const w=(s.works||[]).find(x=>String(x.id)===String(e.billWorkId));
+    if(w&&(w.status||'active')==='done')extrasDue+=b;
+  });
+  doneValue=Math.round((doneValue+extrasDue)*100)/100;
+  const agreed=Math.round((st.totalQuote+extrasAll)*100)/100;
+  return{doneCount:doneWorks.length||(s.status==='done'&&doneValue>0?1:0),doneValue,received,agreed,
     dueNow:Math.max(0,Math.round((doneValue-received)*100)/100),
-    remaining:Math.max(0,Math.round((st.totalQuote-received)*100)/100)};
+    remaining:Math.max(0,Math.round((agreed-received)*100)/100)};
 }
 function clientReceivables(){
   return D.sites.map(s=>({s,d:clientDue(s)})).filter(x=>x.d.dueNow>0)
@@ -1526,6 +1546,7 @@ function renderDetailProfit(s){
       </div>
       ${worksHtml}
       ${works.length?`<div class="prof-total" style="margin-top:8px"><span>Total agreed</span><span>${fmt(totalQuote)}</span></div>`:''}
+      ${st.extrasBill>0?`<div class="prof-total" style="margin-top:2px;color:#6d5a12"><span>+ Billable extras (outside quote)</span><span>${fmt(st.extrasBill)}</span></div>`:''}
     </div>
     <div class="prof-box">
       <div class="prof-label">Costs</div>
@@ -1663,7 +1684,7 @@ function renderDetailLog(s){
     const canSplit=e.type==='income'&&(e.isAdvance||e.unsplit)&&((e.advance||0)+(e.amount||0))>0;
     return`
     <div class="li"><div class="ld">${e.date}</div><div class="lb"><span class="badge ${tb[e.type]||'bd2'}">${tl[e.type]||e.type}</span></div>
-    <div style="flex:1">${logDesc(e)}${canSplit?` <button class="btn bs" style="font-size:10px;margin-left:6px" onclick="openSplitInc(${s.id},${realIdx})">✂ Split</button>`:''}</div></div>`;});
+    <div style="flex:1">${logDesc(e)}${e.billable?` <span class="badge" style="background:#FDF6E3;color:#6d5a12;font-size:9px">EXTRA — bill ${fmt(e.billAmount||0)}</span>`:''}${canSplit?` <button class="btn bs" style="font-size:10px;margin-left:6px" onclick="openSplitInc(${s.id},${realIdx})">✂ Split</button>`:''}</div></div>`;});
   document.getElementById('d-log').innerHTML='<div class="dp">'+limitLog(rows,'sitelog'+s.id,'rerenderDetailLog()',15)+'</div>';
 }
 function logDesc(e){
@@ -1710,6 +1731,17 @@ function onMatSrc(){
   const hint=document.getElementById('log-mcost-hint');
   if(hint)hint.textContent=wh?'— auto-calculated from sale price, edit if needed':'— enter what you paid the supplier';
   if(wh)updateMatAvail();else{document.getElementById('log-mcost').value='';popVendorSel();onMPaid();}
+}
+function onBillToggle(){
+  const on=document.getElementById('log-mbill').checked;
+  document.getElementById('log-bill-wrap').style.display=on?'':'none';
+  if(on){
+    const s=D.sites.find(x=>x.id===D.activeSiteId);
+    document.getElementById('log-mbillwork').innerHTML='<option value="">— whole site —</option>'
+      +(((s&&s.works)||[]).map(w=>`<option value="${w.id}">${w.desc||'Work'}</option>`).join(''));
+    if(!document.getElementById('log-mbillamt').value)
+      document.getElementById('log-mbillamt').value=document.getElementById('log-mcost').value||'';
+  }
 }
 function onMPaid(){
   const credit=document.getElementById('log-mpaid').value==='credit';
@@ -1830,6 +1862,15 @@ function saveLog(){
       entry.credit=document.getElementById('log-mpaid').value==='credit';
       if(entry.credit)entry.vpId=Date.now()+''+Math.floor(Math.random()*10000);
       else{const pm=readPayMethod('xp');entry.payMethod=pm.method;if(pm.holder)entry.payHolder=pm.holder;}
+    }
+    const billCb=document.getElementById('log-mbill');
+    if(billCb&&billCb.checked){
+      const base=entry.type==='local-purchase'?(entry.amount||0):(entry.cost||0);
+      entry.billable=true;
+      entry.billAmount=parseFloat(document.getElementById('log-mbillamt').value)||base;
+      const bw=document.getElementById('log-mbillwork');
+      if(bw&&bw.value)entry.billWorkId=bw.value;
+      billCb.checked=false;document.getElementById('log-bill-wrap').style.display='none';document.getElementById('log-mbillamt').value='';
     }
   }
   if(type==='note'){entry.text=document.getElementById('log-note').value}
@@ -2154,14 +2195,23 @@ function onDocKind(){
     ?'This quotation is valid for 30 days. Prices include all materials and labour unless stated otherwise.'
     :'Please settle this invoice within 14 days. Thank you for your business.';
   // Quotes preselect not-yet-done works; invoices preselect completed ones
-  document.getElementById('dg-items').innerHTML=(s.works||[]).map(w=>{
+  const extraRows=(s.log||[]).map((e,i)=>({e,i})).filter(x=>x.e.billable).map(x=>{
+    const lw=x.e.billWorkId?(s.works||[]).find(w=>String(w.id)===String(x.e.billWorkId)):null;
+    const chargeable=s.status==='done'||!x.e.billWorkId||(lw&&(lw.status||'active')==='done');
+    const pre=kind==='invoice'&&chargeable;
+    return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f4f4f2;font-size:12px;cursor:pointer">
+      <input type="checkbox" class="dg-cb" value="x${x.i}" ${pre?'checked':''} style="width:14px;height:14px">
+      <span style="flex:1">${x.e.desc||x.e.matName||'Extra material'} <span class="badge" style="background:#FDF6E3;color:#6d5a12;font-size:9px">EXTRA</span>${lw?`<div style="font-size:10px;color:#6b6b6b">for ${lw.desc}</div>`:''}</span>
+      <span style="font-weight:500">${fmt(x.e.billAmount||0)}</span></label>`;
+  }).join('');
+  document.getElementById('dg-items').innerHTML=((s.works||[]).map(w=>{
     const done=(w.status||'active')==='done';
     const pre=kind==='invoice'?done:!done;
     return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f4f4f2;font-size:12px;cursor:pointer">
       <input type="checkbox" class="dg-cb" value="${w.id}" ${pre?'checked':''} style="width:14px;height:14px">
       <span style="flex:1">${w.desc}${done?' <span class="badge bd2" style="font-size:9px">Completed</span>':''}</span>
       <span style="font-weight:500">${fmt(w.price||0)}</span></label>`;
-  }).join('')||'<div style="font-size:11px;color:#6b6b6b;padding:6px 0">No works on this site yet — use the extra item below.</div>';
+  }).join('')+extraRows)||'<div style="font-size:11px;color:#6b6b6b;padding:6px 0">No works on this site yet — use the extra item below.</div>';
 }
 // Pure builder — matches the RAIYVINA template: heavy masthead with a
 // black number bar, company + reg top-right, ISSUED TO with issue/due
@@ -2259,6 +2309,11 @@ function generateDoc(){
     });
   }else{
     [...document.querySelectorAll('.dg-cb:checked')].forEach(cb=>{
+      if(cb.value.charAt(0)==='x'){
+        const e=(s.log||[])[parseInt(cb.value.slice(1))];
+        if(e&&e.billable)items.push({desc:(e.desc||e.matName||'Extra material')+' (extra — outside quoted price)',amount:e.billAmount||0});
+        return;
+      }
       const w=(s.works||[]).find(x=>String(x.id)===cb.value);
       if(w)items.push({desc:w.desc,amount:w.price||0});
     });
