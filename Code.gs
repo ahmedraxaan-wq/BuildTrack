@@ -33,6 +33,19 @@ function book() {
 
 function doGet(e)  { return route((e && e.parameter) || {}); }
 
+// ══ ACCESS CONTROL ══════════════════════════════════════════════
+// Set YOUR OWN username and password here, then create a NEW
+// deployment. Every request must carry the matching credentials —
+// without them, nobody can read or write this spreadsheet, even
+// with the /exec URL. Leave PASSWORD empty ('') to turn auth off.
+var USERNAME = 'admin';
+var PASSWORD = 'raiyvina';   // ← CHANGE THIS before deploying!
+
+function authToken_() {
+  var raw = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, USERNAME + ':' + PASSWORD);
+  return raw.map(function (b) { b = (b + 256) % 256; return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+}
+
 function doPost(e) {
   var p = {};
   try { p = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
@@ -43,8 +56,13 @@ function doPost(e) {
 function route(p) {
   var out;
   try {
-    if (p.action === 'ping')         out = { ok: true, v: 3 };
-    else if (p.action === 'loadAll') out = { ok: true, v: 3, data: loadAll() };
+    var authOn = !!(PASSWORD && PASSWORD.length);
+    if (p.action === 'ping') {
+      out = { ok: true, v: 4, authRequired: authOn, authOk: !authOn || p.t === authToken_() };
+    } else if (authOn && p.t !== authToken_()) {
+      out = { ok: false, error: 'auth', v: 4 };
+    }
+    else if (p.action === 'loadAll') out = { ok: true, v: 4, data: loadAll() };
     else if (p.action === 'save')    out = saveTable(p.table, p.data);
     else                             out = { ok: false, error: 'unknown action' };
   } catch (err) {
@@ -124,7 +142,7 @@ function saveTable(table, json) {
     rows.forEach(function (r) {
       for (var f in r) if (headers.indexOf(f) === -1) headers.push(f);
     });
-    if (!headers.length) { sh.clearContents(); return { ok: true, v: 3, rows: 0 }; }
+    if (!headers.length) { sh.clearContents(); return { ok: true, v: 4, rows: 0 }; }
 
     var grid = [headers];
     rows.forEach(function (r) {
@@ -138,7 +156,7 @@ function saveTable(table, json) {
 
     sh.clearContents();
     sh.getRange(1, 1, grid.length, headers.length).setValues(grid);
-    return { ok: true, v: 3, rows: rows.length };
+    return { ok: true, v: 4, rows: rows.length };
   } finally {
     lock.releaseLock();
   }
