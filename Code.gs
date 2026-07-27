@@ -18,7 +18,7 @@
  */
 
 var TABLES = ['sites','employees','stocks','purchaseOrders','sales','roster',
-              'fees','holidays','machinery','leave','vendors','holders','cashflow','settings'];
+              'fees','holidays','machinery','leave','vendors','holders','cashflow','settings','expenses'];
 
 // Leave SHEET_ID empty if you opened this editor from the spreadsheet
 // (Extensions → Apps Script). If your script lives at script.google.com

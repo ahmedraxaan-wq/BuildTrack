@@ -17,12 +17,17 @@
   --dgr:#A32D2D;--dgr-bg:#FBEAEA;
   --inf:#185FA5;--inf-bg:#E8F4FD;
   --amb:#854F0B;--amb-bg:#FDF6E3;--amb-line:#E8D48B;--amb-tx:#6d5a12;
+  --inf-line:#90CAF9;--dgr-line:#E57373;
+  --ok-bg:#E8F5E9;--ok-line:#81C784;--ok-tx:#3B6D11;
+  --own:#534AB7;--own-bg:#EEEDFE;--own-line:#B39DDB;
+  --pend:#993C1D;--pend-bg:#FAECE7;
+  --btn-tx:#ffffff;
 }
 [data-theme="emerald"]{--pri:#66cc8a;--pri-bg:#e7f8ee;--inf:#377cfb;--inf-bg:#e8effe;--dgr:#e5484d;--dgr-bg:#fdecec}
 [data-theme="corporate"]{--pri:#4b6bfb;--pri-bg:#eaeefe;--inf:#5e7ce2;--inf-bg:#edf1fc;--bg2:#f6f7fb;--bg3:#f1f3f9;--line:#e3e6ef;--line2:#eef0f6}
 [data-theme="winter"]{--bg:#ffffff;--bg2:#f2f7ff;--bg3:#ecf3fe;--line:#dbe4f3;--line2:#e9eff9;--inp:#c6d3e8;--pri:#047aff;--pri-bg:#e0efff;--tx:#394e6a;--mut:#6a7f9d;--inf:#6f8bb5;--inf-bg:#e7eefa}
-[data-theme="night"]{--bg:#0f172a;--bg2:#131c31;--bg3:#17213c;--line:#243352;--line2:#1b2841;--inp:#2c3d61;--tx:#e2e8f0;--mut:#94a3b8;--pri:#38bdf8;--pri-bg:#12314a;--dgr:#f87171;--dgr-bg:#3a1d24;--inf:#818cf8;--inf-bg:#1f2547;--amb:#fbbf24;--amb-bg:#3a2f14;--amb-line:#5c4a1e;--amb-tx:#fbbf24}
-[data-theme="business"]{--bg:#212121;--bg2:#1b1b1b;--bg3:#262626;--line:#3a3a3a;--line2:#2c2c2c;--inp:#474747;--tx:#e5e5e5;--mut:#9e9e9e;--pri:#3d6ea5;--pri-bg:#16293d;--dgr:#ef5350;--dgr-bg:#3a2020;--inf:#8fa3ad;--inf-bg:#26323a;--amb:#eab308;--amb-bg:#332b10;--amb-line:#4d411a;--amb-tx:#eab308}
+[data-theme="night"]{--bg:#0f172a;--bg2:#131c31;--bg3:#17213c;--line:#243352;--line2:#1b2841;--inp:#2c3d61;--tx:#e2e8f0;--mut:#94a3b8;--pri:#38bdf8;--pri-bg:#12314a;--dgr:#f87171;--dgr-bg:#3a1d24;--inf:#818cf8;--inf-bg:#1f2547;--amb:#fbbf24;--amb-bg:#3a2f14;--amb-line:#5c4a1e;--amb-tx:#fbbf24;--inf-line:#33507a;--dgr-line:#7a3a3a;--ok-bg:#15332a;--ok-line:#2f5c47;--ok-tx:#6ee7b7;--own:#a5b4fc;--own-bg:#232447;--own-line:#3b3d7a;--pend:#fdba74;--pend-bg:#3a2a1a}
+[data-theme="business"]{--bg:#212121;--bg2:#1b1b1b;--bg3:#262626;--line:#3a3a3a;--line2:#2c2c2c;--inp:#474747;--tx:#e5e5e5;--mut:#9e9e9e;--pri:#3d6ea5;--pri-bg:#16293d;--dgr:#ef5350;--dgr-bg:#3a2020;--inf:#8fa3ad;--inf-bg:#26323a;--amb:#eab308;--amb-bg:#332b10;--amb-line:#4d411a;--amb-tx:#eab308;--inf-line:#3d5566;--dgr-line:#6e3434;--ok-bg:#1e2f22;--ok-line:#3a5c40;--ok-tx:#81c784;--own:#b39ddb;--own-bg:#2a2440;--own-line:#4a3f6b;--pend:#e8a87c;--pend-bg:#38281c}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--bg);font-size:13px}
 /* Legacy token names used by older styles — aliased to the theme
@@ -45,24 +50,24 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--tx);backgr
 .card{background:var(--bg2);border-radius:10px;padding:14px 16px;border:1px solid var(--line)}
 .cl{font-size:10px;color:var(--mut);margin-bottom:3px}
 .cv{font-size:19px;font-weight:500}
-.g{color:var(--pri)}.r{color:var(--dgr)}.b{color:var(--inf)}.am{color:var(--amb)}.pu{color:#534AB7}
+.g{color:var(--pri)}.r{color:var(--dgr)}.b{color:var(--inf)}.am{color:var(--amb)}.pu{color:var(--own)}
 .sec{margin-bottom:22px}
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .st{font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:1.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);cursor:pointer;font-size:12px;font-family:Inter,system-ui,-apple-system,sans-serif;transition:background 0.12s}
 .btn:hover{background:var(--bg2)}
-.bp{background:var(--tx);color:var(--bg);border-color:var(--tx)}.bp:hover{background:#333;border-color:#333}
+.bp{background:var(--tx);color:var(--bg);border-color:var(--tx)}.bp:hover{background:var(--tx);border-color:var(--tx)}
 .bs{padding:3px 8px;font-size:11px}
-.bd{color:var(--dgr)}.bd:hover{background:#FCEBEB}
+.bd{color:var(--dgr)}.bd:hover{background:var(--dgr-bg)}
 .bg2{color:var(--pri)}.bg2:hover{background:var(--pri-bg)}
-.bam{color:var(--amb)}.bam:hover{background:#FAEEDA}
+.bam{color:var(--amb)}.bam:hover{background:var(--amb-bg)}
 table{width:100%;border-collapse:collapse}
 th{font-size:10px;font-weight:600;color:var(--mut);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line);text-transform:uppercase;letter-spacing:0.05em;background:var(--bg2)}
 td{padding:9px 10px;border-bottom:1px solid var(--line2);font-size:12px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#f0f4ff}
+tr:hover td{background:var(--bg3)}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
-.ba{background:var(--pri-bg);color:var(--pri)}.bpe{background:#FAEEDA;color:var(--amb)}.bo{background:#EEEDFE;color:#534AB7}.bd2{background:#F1EFE8;color:#5F5E5A}.bsc{background:#E6F1FB;color:var(--inf)}.blow{background:#FCEBEB;color:var(--dgr)}.bok{background:#EAF3DE;color:#3B6D11}.bfor{background:#EEEDFE;color:#534AB7}.bpaid{background:var(--pri-bg);color:var(--pri)}.bcredit{background:#FAEEDA;color:var(--amb)}.bpartial{background:#E6F1FB;color:var(--inf)}
+.ba{background:var(--pri-bg);color:var(--pri)}.bpe{background:var(--amb-bg);color:var(--amb)}.bo{background:var(--own-bg);color:var(--own)}.bd2{background:var(--bg3);color:var(--mut)}.bsc{background:var(--inf-bg);color:var(--inf)}.blow{background:var(--dgr-bg);color:var(--dgr)}.bok{background:var(--ok-bg);color:var(--ok-tx)}.bfor{background:var(--own-bg);color:var(--own)}.bpaid{background:var(--pri-bg);color:var(--pri)}.bcredit{background:var(--amb-bg);color:var(--amb)}.bpartial{background:var(--inf-bg);color:var(--inf)}
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
 .mo.open{display:flex}
 .md{background:var(--bg);border-radius:10px;padding:20px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;border:0.5px solid var(--line)}
@@ -92,10 +97,10 @@ tr:hover td{background:#f0f4ff}
 .tab-bar{display:flex;border-bottom:0.5px solid var(--line);margin-bottom:16px}
 .tab{padding:6px 12px;font-size:12px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px}
 .tab.active{color:var(--inf);font-weight:600;border-bottom-color:var(--inf)}
-.na{background:#FFF3E0;border:1px solid #F9A825;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amb);margin-bottom:12px}
-.nb{background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px}
-.ng{background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px}
-.np{background:#EDE7F6;border:1px solid #B39DDB;border-radius:8px;padding:10px 14px;font-size:12px;color:#534AB7;margin-bottom:12px}
+.na{background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amb);margin-bottom:12px}
+.nb{background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px}
+.ng{background:var(--ok-bg);border:1px solid var(--ok-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px}
+.np{background:var(--own-bg);border:1px solid var(--own-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--own);margin-bottom:12px}
 .cs{background:var(--bg2);border-radius:10px;padding:14px;border:1px solid var(--line)}
 .cr{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid var(--line)}
 .cr:last-child{border-bottom:none;font-weight:500;padding-top:8px;font-size:13px}
@@ -200,10 +205,10 @@ tr:hover td{background:#f0f4ff}
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="pt">Overview</div>
-  <div id="gs-banner" style="background:#EBF5FF;border:1.5px solid var(--inf);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,95,165,0.08)">
+  <div id="gs-banner" style="background:var(--inf-bg);border:1.5px solid var(--inf);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,95,165,0.08)">
     <span style="font-size:13px;color:var(--inf);font-weight:500">☁ Google Sheets sync</span>
-    <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid var(--inf);border-radius:6px;font-size:12px;font-family:sans-serif;color:#333">
-    <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:var(--inf);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
+    <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid var(--inf);border-radius:6px;font-size:12px;font-family:sans-serif;color:var(--tx)">
+    <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:var(--inf);color:var(--btn-tx);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
     <span id="gs-banner-status" style="font-size:12px"></span>
   </div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -405,7 +410,7 @@ tr:hover td{background:#f0f4ff}
 <!-- SETTLEMENTS -->
 <div id="page-settlements" class="page">
   <div class="pt">Material cost settlements</div>
-  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:16px">Settling transfers the cost of materials taken from your own warehouse from the construction account to the material business. Materials bought externally from other suppliers are excluded — those were paid directly. Settle at any time, even after job completion.</div>
+  <div style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:16px">Settling transfers the cost of materials taken from your own warehouse from the construction account to the material business. Materials bought externally from other suppliers are excluded — those were paid directly. Settle at any time, even after job completion.</div>
   <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Unsettled</span></div><div id="settle-unsettled"></div></div>
   <div style="height:0.5px;background:var(--line);margin:16px 0"></div>
   <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Settlement history</span></div><div id="settle-history"></div></div>
@@ -418,6 +423,7 @@ tr:hover td{background:#f0f4ff}
   <div class="pt">Finance summary</div>
   <div class="cards" id="fin-cards"></div>
   <div id="fin-cash" style="margin-bottom:20px"></div>
+  <div id="fin-expenses" style="margin-bottom:20px"></div>
   <div id="fin-receivables" style="margin-bottom:20px"></div>
   <div id="fin-vendors" style="margin-bottom:20px"></div>
   <div class="sec">
@@ -600,12 +606,12 @@ tr:hover td{background:#f0f4ff}
     </div>
     <div id="lf-income-advance" style="display:none">
       <div class="fg"><label>Advance amount (MVR)</label><input id="log-adv" type="number" placeholder="e.g. 15000"></div>
-      <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Recorded as an advance. You can split it into labour / material later once the work is complete.</div>
+      <div style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Recorded as an advance. You can split it into labour / material later once the work is complete.</div>
     </div>
     <div id="lf-income-full" style="display:none">
       <div class="fg"><label>Amount received (MVR)</label><input id="log-inamt" type="number" placeholder="e.g. 111725"></div>
       <div class="fg"><label>For which work (optional)</label><select id="log-inwork"></select></div>
-      <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Logged as one payment now. Use the ✂ Split button on the log entry when you're ready to divide it into labour / materials.</div>
+      <div style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Logged as one payment now. Use the ✂ Split button on the log entry when you're ready to divide it into labour / materials.</div>
     </div>
     <div id="loginc-methodwrap"></div>
   </div>
@@ -806,7 +812,7 @@ tr:hover td{background:#f0f4ff}
     <div class="fg"><label>Boat / delivery/unit</label><input id="el-boat" type="number" placeholder="0" oninput="updateElPreview()"></div>
     <div class="fg"><label>Warehousing/unit</label><input id="el-whouse" type="number" placeholder="0" oninput="updateElPreview()"></div>
   </div>
-  <div id="el-preview" style="font-size:12px;color:var(--pri);padding:8px;background:#E8F5E9;border-radius:7px;margin-bottom:10px"></div>
+  <div id="el-preview" style="font-size:12px;color:var(--pri);padding:8px;background:var(--ok-bg);border-radius:7px;margin-bottom:10px"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-edit-landed')">Cancel</button><button class="btn bp" onclick="saveEditLanded()">Save</button></div>
 </div></div>
 
@@ -891,9 +897,9 @@ tr:hover td{background:#f0f4ff}
 <div class="mo" id="modal-settle"><div class="md" style="max-width:440px">
   <div class="mt">Settle material cost</div>
   <input type="hidden" id="settle-site-id">
-  <div id="settle-info" style="background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px"></div>
+  <div id="settle-info" style="background:var(--ok-bg);border:1px solid var(--ok-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px"></div>
   <div id="settle-breakdown" style="margin-bottom:12px"></div>
-  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">This transfers the cost of materials taken from your own warehouse to the material business. Materials bought externally from other suppliers are not included — those were already paid for directly.</div>
+  <div style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">This transfers the cost of materials taken from your own warehouse to the material business. Materials bought externally from other suppliers are not included — those were already paid for directly.</div>
   <div class="fg"><label>Settlement date</label><input id="settle-date" type="date"></div>
   <div class="fg"><label>Note (optional)</label><input id="settle-note" placeholder="e.g. settled after final payment received"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-settle')">Cancel</button><button class="btn bp" onclick="doSettle()">Confirm settlement</button></div>
@@ -902,7 +908,7 @@ tr:hover td{background:#f0f4ff}
 <!-- DAY WORKER -->
 <div class="mo" id="modal-dayworker"><div class="md" style="max-width:420px">
   <div class="mt">Add day worker</div>
-  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">Day workers are not in the employee list. Enter their details and day rate manually — the labour cost is logged to the selected site.</div>
+  <div style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">Day workers are not in the employee list. Enter their details and day rate manually — the labour cost is logged to the selected site.</div>
   <div class="fg"><label>Name</label><input id="dw-name" placeholder="e.g. Hassan (carpenter)"></div>
   <div class="fr">
     <div class="fg"><label>Date</label><input id="dw-date" type="date"></div>
@@ -1013,6 +1019,7 @@ const D={
   nextMachId:1,nextLeaveId:1,nextPOId:1,nextVendorId:1,nextHolderId:1,nextCashId:1,
   vendors:[],holders:[],cashflow:[],
   company:{},
+  expenses:[],nextExpId:1,
   nextSiteId:5,nextEmpId:8,nextMatId:5,nextHolId:5,nextSaleId:1,nextSaleItemId:1,machFilter:'all'
 };
 
@@ -1041,7 +1048,7 @@ const normDate=v=>{
 const firstDayOfMonth=()=>{const d=new Date();d.setDate(1);return d.toISOString().split('T')[0];};
 const firstDayOfYear=()=>{const d=new Date();d.setMonth(0,1);return d.toISOString().split('T')[0];};
 const ini=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-const AVCOL=[['#E6F1FB','var(--inf)'],['var(--pri-bg)','var(--pri)'],['#EEEDFE','#534AB7'],['#FAEEDA','var(--amb)'],['#FAECE7','#993C1D']];
+const AVCOL=[['var(--inf-bg)','var(--inf)'],['var(--pri-bg)','var(--pri)'],['var(--own-bg)','var(--own)'],['var(--amb-bg)','var(--amb)'],['var(--pend-bg)','var(--pend)']];
 const avc=id=>AVCOL[(id-1)%AVCOL.length];
 
 function isFriday(d){return new Date(d).getDay()===5}
@@ -1192,6 +1199,9 @@ function dashRealized(from,to){
     if(e.type==='return')costs-=e.cost||0;
     if(isExtPurchase(e))costs+=extAmount(e);
   }));
+  // Company overheads: housing, sponsorships, bulk consumables — money
+  // spent (or committed on credit) in the period is a cost of the period
+  (D.expenses||[]).forEach(x=>{if(inR(x.date))costs+=x.amount||0;});
   costs=Math.max(0,Math.round(costs*100)/100);
   let worksDoneCount=0,worksDoneValue=0;
   (D.sites||[]).forEach(s=>(s.works||[]).forEach(w=>{
@@ -1301,6 +1311,72 @@ function renderInternalSales(){
   el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Internal sales — worksite material settlements · ${fmt(total)}</span></div>
     <div style="font-size:11px;color:var(--mut);margin-bottom:6px">Materials your own worksites settled with the material business. Recorded automatically from settlements — always fully paid.</div>
     ${limitLog(rows,'intsales','renderInternalSales()',8)}</div>`;
+}
+const EXP_CATS={accommodation:'Housing & accommodation',sponsorship:'Sponsorship & donations',consumables:'Consumables & tools',office:'Office & admin',vehicle:'Vehicle & fuel',other:'Other'};
+function openExpense(){
+  document.getElementById('exp-date').value=today();
+  document.getElementById('exp-cat').innerHTML=Object.keys(EXP_CATS).map(k=>`<option value="${k}">${EXP_CATS[k]}</option>`).join('');
+  document.getElementById('exp-desc').value='';
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-vendor').innerHTML='<option value="">— none —</option>'
+    +((D.vendors||[]).map(v=>`<option value="${v.id}">${v.name}</option>`).join(''))
+    +'<option value="__new__">＋ New vendor…</option>';
+  document.getElementById('exp-vendor-new').style.display='none';
+  document.getElementById('exp-vendor-new').value='';
+  document.getElementById('exp-paid').value='paid';
+  ensurePayWidget('cxp-methodwrap','cxp','Paid by');
+  document.getElementById('cxp-methodwrap').style.display='';
+  openModal('modal-expense');
+}
+function saveExpense(){
+  const amount=parseFloat(document.getElementById('exp-amount').value)||0;
+  if(amount<=0){alert('Enter the amount spent.');return;}
+  const entry={id:D.nextExpId++,date:document.getElementById('exp-date').value||today(),
+    category:document.getElementById('exp-cat').value,
+    desc:(document.getElementById('exp-desc').value||'').trim(),amount};
+  const vsel=document.getElementById('exp-vendor');
+  if(vsel.value==='__new__'){
+    const nm=(document.getElementById('exp-vendor-new').value||'').trim();
+    if(nm){const v=findOrCreateVendor(nm);entry.vendor=v.name;entry.vendorId=v.id;GS.save('vendors');}
+  }else if(vsel.value){
+    const v=(D.vendors||[]).find(x=>String(x.id)===vsel.value);
+    if(v){entry.vendor=v.name;entry.vendorId=v.id;}
+  }
+  if(document.getElementById('exp-paid').value==='credit'){
+    entry.credit=true;entry.vpId=Date.now()+''+Math.floor(Math.random()*10000);
+  }else{
+    const pm=readPayMethod('cxp');entry.method=pm.method;if(pm.holder)entry.holder=pm.holder;
+  }
+  D.expenses.push(entry);
+  GS.save('expenses');
+  closeModal('modal-expense');
+  renderFinExpenses();renderFinVendors();renderFinCash();
+}
+function deleteExpense(id){
+  const i=(D.expenses||[]).findIndex(x=>x.id===id);if(i<0)return;
+  const x=D.expenses[i];
+  if(!confirm('Delete this expense of '+fmt(x.amount)+'? '+(x.credit&&!x.paid?'Its vendor payable disappears too.':'Cash/bank balances adjust back.')))return;
+  D.expenses.splice(i,1);
+  GS.save('expenses');
+  renderFinExpenses();renderFinVendors();renderFinCash();
+}
+function renderFinExpenses(){
+  const el=document.getElementById('fin-expenses');if(!el)return;
+  const list=[...(D.expenses||[])].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const total=list.reduce((a,x)=>a+(x.amount||0),0);
+  const ym=today().slice(0,7);
+  const month=list.filter(x=>String(x.date).slice(0,7)===ym).reduce((a,x)=>a+(x.amount||0),0);
+  const rows=list.map(x=>{
+    const badge=extPayBadge({credit:!!x.credit,paid:!!x.paid,paidDate:x.paidDate||'',payMethod:x.credit?(x.payMethod||''):(x.method||''),payHolder:x.credit?(x.payHolder||''):(x.holder||'')});
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line2);font-size:12px">
+    <span style="flex:1"><b>${EXP_CATS[x.category]||'Other'}</b>${x.desc?' — '+x.desc:''}<div style="font-size:10px;color:var(--mut)">${x.date}${x.vendor?' · '+x.vendor:''}</div></span>
+    <span style="display:inline-flex;align-items:center;gap:6px"><b>${fmt(x.amount||0)}</b>${badge}
+      ${x.credit&&!x.paid?`<button class="btn bs" style="font-size:10px" onclick="markVendorPaid('exp','${x.vpId}')">✓ Pay</button>`:''}
+      <button class="btn bs" style="font-size:10px" onclick="deleteExpense(${x.id})">✕</button></span>
+  </div>`;});
+  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Company expenses — ${fmt(total)} all-time · ${fmt(month)} this month</span><button class="btn bs" onclick="openExpense()">＋ Add expense</button></div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:6px">Housing, sponsorships, bulk consumables and other overheads. These count in period costs and move cash/bank like everything else.</div>
+    ${list.length?limitLog(rows,'expenses','renderFinExpenses()',10):'<div class="empty">No company expenses recorded yet.</div>'}</div>`;
 }
 function clientReceivables(){
   return D.sites.map(s=>({s,d:clientDue(s)})).filter(x=>x.d.dueNow>0)
@@ -2491,7 +2567,7 @@ function renderEmps(){
       <td><span class="pc">${fmt(e.rate)}/day</span></td>
       <td>${e.empType==='foreign'?fmt(FOOD_MONTHLY)+'/mo':'—'}</td>
       <td>${site?`<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-size:12px" onclick="openDetail(${site.id})">${site.name}</span>`:'<span style="color:var(--mut)">—</span>'}</td>
-      <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="openEditEmp(${e.id})" style="color:var(--inf);font-size:11px">💲 Salary</button><button class="btn bs" onclick="openLeaveModal(${e.id})" style="color:#534AB7;font-size:11px">🏖 Leave</button><button class="btn bs bd2c" onclick="removeEmp(${e.id})" style="font-size:11px">✕ Delete</button></div></td>
+      <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="openEditEmp(${e.id})" style="color:var(--inf);font-size:11px">💲 Salary</button><button class="btn bs" onclick="openLeaveModal(${e.id})" style="color:var(--own);font-size:11px">🏖 Leave</button><button class="btn bs bd2c" onclick="removeEmp(${e.id})" style="font-size:11px">✕ Delete</button></div></td>
     </tr>`;
   }).join('');
   const fgn=D.employees.filter(e=>e.empType==='foreign');const loc=D.employees.filter(e=>e.empType==='local');
@@ -2930,6 +3006,7 @@ function renderMachinery(){
 }
 
 function renderFinance(){
+  renderFinExpenses();
   renderFinReceivables();
   let tLC=0,tMC=0,tLP=0,tMP=0;
   D.sites.forEach(s=>{const st=siteStats(s);if(s.type!=='own'){tLC+=st.lCost;tMC+=st.totalMatCost;tLP+=st.totalQuote;tMP+=st.totalProfit;}});
@@ -3038,6 +3115,7 @@ function moneyEvents(){
   (D.sales||[]).forEach(s=>(s.payments||[]).forEach(p=>push(p.date,p.amount,'in',p.method,p.holder,'Sale payment'+(s.customer?' — '+s.customer:''))));
   (D.sites||[]).forEach(s=>(s.log||[]).forEach(e=>{
     if(e.type==='income')push(e.date,(e.lIn||0)+(e.mIn||0)+(e.advance||0)+(e.unsplit?(e.amount||0):0),'in',e.method,e.holder,'Income — '+s.name);
+    // (company expenses handled below, outside the site loop)
     if(isExtPurchase(e)){
       if(e.credit){if(e.paid)push(e.paidDate||e.date,extAmount(e),'out',e.payMethod,e.payHolder,'Vendor payment'+(e.vendor?' — '+e.vendor:''));}
       else push(e.date,extAmount(e),'out',e.payMethod,e.payHolder,'External purchase — '+s.name);
@@ -3048,6 +3126,14 @@ function moneyEvents(){
     const emp=D.employees.find(e=>e.id===f.empId);
     const lbl=({visa:'Visa fee',quota:'Quota fee',ticket:'Ticket',salary:'Salary',other:'Payment'})[f.feeType]||'Payment';
     push(f.date,f.amount,'out',f.method,f.holder,lbl+(emp?' — '+emp.name:''));
+  });
+  (D.expenses||[]).forEach(x=>{
+    const lbl='Expense — '+(EXP_CATS[x.category]||'Other')+(x.desc?' ('+x.desc+')':'');
+    if(x.credit){
+      if(x.paid)push(x.paidDate||x.date,x.amount,'out',x.payMethod,x.payHolder,lbl+' · vendor paid');
+    }else{
+      push(x.date,x.amount,'out',x.method,x.holder,lbl);
+    }
   });
   return ev;
 }
@@ -3170,6 +3256,13 @@ function vendorCredits(){
     const g=groups[key]=groups[key]||{vendorId:e.vendorId!=null?e.vendorId:null,name:reg?reg.name:(e.vendor||'Unnamed vendor'),items:[]};
     g.items.push({siteId:s.id,siteName:s.name,date:e.date,desc:e.desc||'',amount:extAmount(e),vpId:e.vpId});
   }));
+  (D.expenses||[]).forEach(e=>{
+    if(!e.credit||e.paid)return;
+    const key=e.vendorId!=null?('v'+e.vendorId):('n:'+(e.vendor||'Unnamed vendor'));
+    const reg=e.vendorId!=null?(D.vendors||[]).find(x=>x.id===e.vendorId):null;
+    const g=groups[key]=groups[key]||{vendorId:e.vendorId!=null?e.vendorId:null,name:reg?reg.name:(e.vendor||'Unnamed vendor'),items:[]};
+    g.items.push({siteId:'exp',siteName:'Company expense',date:e.date,desc:e.desc||EXP_CATS[e.category]||'',amount:e.amount||0,vpId:e.vpId});
+  });
   return Object.values(groups).sort((a,b)=>a.name.localeCompare(b.name));
 }
 function renameVendor(vendorId){
@@ -3180,24 +3273,29 @@ function renameVendor(vendorId){
   GS.save('vendors');GS.save('sites');
   renderFinVendors();
 }
+function _vpFind(siteId,vpId){
+  if(siteId==='exp')return (D.expenses||[]).find(x=>x.vpId===vpId)||null;
+  const s=D.sites.find(x=>x.id===siteId);if(!s)return null;
+  return (s.log||[]).find(l=>l.vpId===vpId)||null;
+}
 function markVendorPaid(siteId,vpId){
-  const s=D.sites.find(x=>x.id===siteId);if(!s)return;
-  const e=(s.log||[]).find(l=>l.vpId===vpId);if(!e)return;
+  const e=_vpFind(siteId,vpId);if(!e)return;
   window._vpayTarget={siteId,vpId};
-  document.getElementById('vp-info').textContent=`Paying ${fmt(extAmount(e))}${e.vendor?' to '+e.vendor:''} — ${e.desc||'external purchase'} (${s.name})`;
+  const where=siteId==='exp'?'company expense':((D.sites.find(x=>x.id===siteId)||{}).name||'');
+  document.getElementById('vp-info').textContent=`Paying ${fmt(siteId==='exp'?(e.amount||0):extAmount(e))}${e.vendor?' to '+e.vendor:''} — ${e.desc||'purchase'} (${where})`;
   document.getElementById('vp-date').value=today();
   ensurePayWidget('vp-methodwrap','vp','Paid by');
   openModal('modal-vpay');
 }
 function saveVendorPay(){
   const t=window._vpayTarget;if(!t)return;
-  const s=D.sites.find(x=>x.id===t.siteId);if(!s)return;
-  const e=(s.log||[]).find(l=>l.vpId===t.vpId);if(!e)return;
+  const e=_vpFind(t.siteId,t.vpId);if(!e)return;
   e.paid=true;e.paidDate=document.getElementById('vp-date').value||today();
   const pm=readPayMethod('vp');e.payMethod=pm.method;if(pm.holder)e.payHolder=pm.holder;
   window._vpayTarget=null;
   closeModal('modal-vpay');
-  GS.save('sites');
+  GS.save(t.siteId==='exp'?'expenses':'sites');
+  renderFinExpenses();
   renderFinVendors();
   renderExtPurchases();
   rerenderDetailExt();
@@ -3215,7 +3313,7 @@ function renderFinVendors(){
       const tot=g.items.reduce((a,p)=>a+p.amount,0);
       return`<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:6px"><span>${g.name}${g.vendorId!=null?` <span style="font-size:9px;color:var(--mut);font-weight:400">#V${g.vendorId}</span> <button class="btn bs" style="font-size:9px;padding:1px 6px" onclick="renameVendor(${g.vendorId})">✎</button>`:''}</span><span style="color:var(--dgr)">${fmt(tot)}</span></div>
-        ${g.items.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--mut);padding:4px 0;border-top:1px solid #eceae5">
+        ${g.items.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--mut);padding:4px 0;border-top:1px solid var(--line)">
           <span>${p.date} · ${p.siteName}${p.desc?' — '+p.desc:''}</span>
           <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:var(--tx)">${fmt(p.amount)}</b>
           <button class="btn bs" style="font-size:10px;color:var(--pri)" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button></span>
@@ -3322,6 +3420,7 @@ var GS = {
       else if (table === 'leave')      data = D.leave;
       else if (table === 'vendors')    data = D.vendors;
       else if (table === 'settings')   data = [D.company||{}];
+      else if (table === 'expenses')   data = D.expenses;
       else if (table === 'holders')    data = D.holders;
       else if (table === 'cashflow')   data = D.cashflow;
       if (!data) return;
@@ -3342,7 +3441,7 @@ var GS = {
   async saveAll() {
     if (!this.url) return [];
     this._setStatus('saving');
-    const tables = ['sites','employees','stocks','purchaseOrders','sales','roster','fees','holidays','machinery','leave','vendors','holders','cashflow','settings'];
+    const tables = ['sites','employees','stocks','purchaseOrders','sales','roster','fees','holidays','machinery','leave','vendors','holders','cashflow','settings','expenses'];
     const failed = [];
     for (const t of tables) { const ok = await this._doSave(t); if (!ok) failed.push(t); }
     this._setStatus(failed.length ? 'error' : 'ok');
@@ -3504,6 +3603,12 @@ var GS = {
       D.vendors = D.vendors || [];
       if (d.settings && d.settings[0]) D.company = { ...d.settings[0] };
       D.company = D.company || {};
+      if (d.expenses) {
+        D.expenses = d.expenses.map(x => ({ ...x, id: parseInt(x.id)||0, amount: parseFloat(x.amount)||0, date: normDate(x.date) }));
+        D.nextExpId = Math.max(0, ...D.expenses.map(x => x.id||0)) + 1;
+        if (!Number.isFinite(D.nextExpId)) D.nextExpId = 1;
+      }
+      D.expenses = D.expenses || [];
       if (d.holders) {
         D.holders = d.holders.map(h => ({ ...h, id: parseInt(h.id), name: (h.name||'').toString() }));
       }
@@ -3605,12 +3710,12 @@ var GS = {
     const el = document.getElementById('gs-banner-status');
     if (!el) return;
     const map = {
-      idle:   ['', '#888'],
+      idle:   ['', 'var(--mut)'],
       saving: ['Saving…', 'var(--amb)'],
       ok:     ['✓ Saved', 'var(--pri)'],
       error:  ['⚠ Not saved', 'var(--dgr)']
     };
-    const [txt, col] = map[s] || ['', '#888'];
+    const [txt, col] = map[s] || ['', 'var(--mut)'];
     el.textContent = txt;
     el.style.color = col;
   }
@@ -3760,10 +3865,10 @@ const LEAVE_LABELS = {
   family:'Family Responsibility Leave', unpaid:'Unpaid Leave', other:'Leave'
 };
 const LEAVE_COLORS = {
-  annual:'#534AB7', sick:'var(--dgr)', family:'var(--inf)', unpaid:'var(--amb)', other:'#5F5E5A'
+  annual:'var(--own)', sick:'var(--dgr)', family:'var(--inf)', unpaid:'var(--amb)', other:'var(--mut)'
 };
 const LEAVE_BG = {
-  annual:'#EEEDFE', sick:'#FCEBEB', family:'#E6F1FB', unpaid:'#FAEEDA', other:'#F1EFE8'
+  annual:'var(--own-bg)', sick:'var(--dgr-bg)', family:'var(--inf-bg)', unpaid:'var(--amb-bg)', other:'var(--bg3)'
 };
 
 function isOnLeave(empId, date) {
@@ -3888,8 +3993,8 @@ function renderLeaveLog() {
       var ranges=mergeLeaveRanges(g.leaves.slice().sort(function(a,b){return a.date.localeCompare(b.date);}));
       ranges.sort(function(a,b){return b.to.localeCompare(a.to);});
       body='<div style="padding-left:20px">'+ranges.map(function(r){
-        var bg=LEAVE_BG[r.leaveType]||'#F1EFE8';
-        var col=LEAVE_COLORS[r.leaveType]||'#333';
+        var bg=LEAVE_BG[r.leaveType]||'var(--bg3)';
+        var col=LEAVE_COLORS[r.leaveType]||'var(--tx)';
         var label=LEAVE_LABELS[r.leaveType]||r.leaveType;
         return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line2)">'
           +'<span style="font-size:11px;min-width:82px;color:var(--mut)">'+(r.from===r.to?r.from:r.from+' → '+r.to)+'</span>'
@@ -3986,15 +4091,15 @@ function generateReport(){
 
     <!-- Summary -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-      <div style="background:#E8F5E9;border-radius:10px;padding:14px 16px">
+      <div style="background:var(--ok-bg);border-radius:10px;padding:14px 16px">
         <div style="font-size:10px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total income</div>
         <div style="font-size:20px;font-weight:700;color:var(--pri)">${fmt(totalIncome)}</div>
       </div>
-      <div style="background:#FCEBEB;border-radius:10px;padding:14px 16px">
+      <div style="background:var(--dgr-bg);border-radius:10px;padding:14px 16px">
         <div style="font-size:10px;font-weight:600;color:var(--dgr);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total expenses</div>
         <div style="font-size:20px;font-weight:700;color:var(--dgr)">${fmt(totalExpense)}</div>
       </div>
-      <div style="background:${netPL>=0?'#E8F5E9':'#FCEBEB'};border-radius:10px;padding:14px 16px">
+      <div style="background:${netPL>=0?'var(--ok-bg)':'var(--dgr-bg)'};border-radius:10px;padding:14px 16px">
         <div style="font-size:10px;font-weight:600;color:${netPL>=0?'var(--pri)':'var(--dgr)'};text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Net ${netPL>=0?'profit':'loss'}</div>
         <div style="font-size:20px;font-weight:700;color:${netPL>=0?'var(--pri)':'var(--dgr)'}">${fmt(Math.abs(netPL))}</div>
       </div>
@@ -4322,7 +4427,7 @@ function renderPOs(){
       </div>
       ${po.notes?`<div style="font-size:11px;color:var(--mut);margin-bottom:8px">${po.notes}</div>`:''}
       ${po.payments&&po.payments.length?`<div style="margin-bottom:8px">${po.payments.map((p,pidx)=>`<div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--mut);background:var(--bg2);border-radius:6px;padding:3px 8px;margin:2px 4px 2px 0">${p.date}: ${fmt(p.amount)}${p.note?' ('+p.note+')':''}<button onclick="deletePOPayment(${po.id},${pidx})" style="border:none;background:none;color:var(--dgr);cursor:pointer;font-size:11px;padding:0 2px" title="Delete this payment">✕</button></div>`).join('')}</div>`:''}
-      ${po.items.some(i=>(i.qtyReceived||0)>0&&!i.linkedStockKey)?`<div style="background:#FCEBEB;border:1px solid #E57373;border-radius:7px;padding:8px 12px;font-size:11px;color:var(--dgr);margin-bottom:8px">⚠ Some received items were not linked to stock (from before this was fixed). <button class="btn bs" style="margin-left:6px;font-size:10px;padding:2px 8px" onclick="repairPOLinks(${po.id})">Fix now</button></div>`:''}
+      ${po.items.some(i=>(i.qtyReceived||0)>0&&!i.linkedStockKey)?`<div style="background:var(--dgr-bg);border:1px solid var(--dgr-line);border-radius:7px;padding:8px 12px;font-size:11px;color:var(--dgr);margin-bottom:8px">⚠ Some received items were not linked to stock (from before this was fixed). <button class="btn bs" style="margin-left:6px;font-size:10px;padding:2px 8px" onclick="repairPOLinks(${po.id})">Fix now</button></div>`:''}
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bs" onclick="openPOPayment(${po.id})" style="color:var(--pri)">💰 Log payment</button>
         ${!allReceived?`<button class="btn bs" onclick="openReceive(${po.id})" style="color:var(--inf)">📦 Receive items</button>`:''}
@@ -4671,7 +4776,7 @@ function openSettle(siteId){
     <div style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">You are settling these materials</div>
     <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 12px">
       ${bd.map(g=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>${g.name} — ${g.qty} ${g.unit}</span><b>${fmt(g.cost)}</b></div>`).join('')}
-      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-top:1px solid #e0e0dc;margin-top:3px"><span>Total warehouse materials</span><b>${fmt(st.mCost)}</b></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-top:1px solid var(--line);margin-top:3px"><span>Total warehouse materials</span><b>${fmt(st.mCost)}</b></div>
       ${st.settledAmt>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);padding:2px 0"><span>Already settled</span><span>− ${fmt(st.settledAmt)}</span></div>`:''}
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--pri);padding:2px 0"><span><b>Settling now</b></span><b>${fmt(st.unsettledAmt)}</b></div>
     </div>`:'';
@@ -4711,7 +4816,7 @@ function renderSettlements(){
       <button class="btn bs" onclick="openSettle(${s.id})" style="color:var(--pri)">⇄ Settle</button>
     </div>`;
   }).join(''):'<div style="font-size:11px;color:var(--mut);padding:8px 0">✓ All warehouse material costs settled</div>')+
-  (overSettled.length?overSettled.map(x=>`<div style="background:#FAEEDA;border:1px solid #E4C98A;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:11px;color:var(--amb)">
+  (overSettled.length?overSettled.map(x=>`<div style="background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:10px;padding:10px 14px;margin-top:8px;font-size:11px;color:var(--amb)">
     ⚠ <b>${x.s.name}</b> is settled for ${fmt(x.st.settledAmt)} but only ${fmt(x.st.mCost)} of warehouse materials were used — likely settled under the old rule that wrongly included external purchases. Delete the settlement below and settle again if you want to correct it.</div>`).join(''):'');
 
   el2.innerHTML=allSettlements.length?`<div class="cs">${limitLog(allSettlements.map(m=>`
@@ -4797,6 +4902,27 @@ function saveDayWorker(){
   <div class="fg"><label>Note (optional)</label><input id="ot-note" placeholder="e.g. concrete pour ran late"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-ot')">Cancel</button><button class="btn bp" onclick="saveOT()">Save overtime</button></div>
 </div></div>
+<div class="mo" id="modal-expense"><div class="md" style="max-width:460px">
+  <div class="mt">Company expense</div>
+  <div style="font-size:11px;color:var(--mut);margin-bottom:10px">Money spent outside worksites and sales — housing, sponsorships, bulk consumables. Counts as a company cost.</div>
+  <div class="fr">
+    <div class="fg"><label>Date</label><input type="date" id="exp-date"></div>
+    <div class="fg"><label>Category</label><select id="exp-cat"></select></div>
+  </div>
+  <div class="fg"><label>Description</label><input id="exp-desc" placeholder="e.g. New beds for staff quarters / bulk wire connectors"></div>
+  <div class="fr">
+    <div class="fg"><label>Amount (MVR)</label><input id="exp-amount" type="number" placeholder="0"></div>
+    <div class="fg"><label>Vendor (optional)</label><select id="exp-vendor" onchange="document.getElementById('exp-vendor-new').style.display=this.value==='__new__'?'':'none'"></select><input id="exp-vendor-new" placeholder="New vendor name" style="display:none;margin-top:6px"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Payment</label><select id="exp-paid" onchange="document.getElementById('cxp-methodwrap').style.display=this.value==='credit'?'none':''"><option value="paid">Paid now</option><option value="credit">On credit — pay vendor later</option></select></div>
+    <div id="cxp-methodwrap"></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+    <button class="btn" onclick="closeModal('modal-expense')">Cancel</button>
+    <button class="btn bp" onclick="saveExpense()">Save expense</button>
+  </div>
+</div></div>
 <div class="mo" id="modal-vpay"><div class="md" style="max-width:400px">
   <div class="mt">Pay vendor</div>
   <div id="vp-info" class="nb" style="margin-bottom:10px"></div>
@@ -4873,7 +4999,7 @@ function saveDayWorker(){
 <div class="mo" id="modal-splitinc"><div class="md" style="max-width:420px">
   <div class="mt">Split payment into labour / materials</div>
   <input type="hidden" id="sp-site"><input type="hidden" id="sp-idx">
-  <div id="sp-info" style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px"></div>
+  <div id="sp-info" style="background:var(--inf-bg);border:1px solid var(--inf-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px"></div>
   <div class="fr">
     <div class="fg"><label>Labour portion (MVR)</label><input id="sp-lin" type="number" placeholder="0" oninput="onSplitInput()"></div>
     <div class="fg"><label>Material portion (MVR)</label><input id="sp-min" type="number" placeholder="0"></div>
