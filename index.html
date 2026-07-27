@@ -9,105 +9,119 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#ffffff;font-size:13px}
+/* ── Theme tokens. Default = RAIYVINA green; others use DaisyUI palettes ── */
 :root{
-  --bg:#ffffff;--bg2:#f7f7f5;--text:#1a1a1a;--text2:#6b6b6b;
-  --border:#e8e8e4;--border2:#d4d4d0;--radius:7px;--radius-lg:10px;
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f4f4f2;--line:#e8e8e4;--line2:#f0f0ee;--inp:#d4d4d0;
+  --tx:#1a1a1a;--mut:#6b6b6b;
+  --pri:#0F6E56;--pri-bg:#E1F5EE;
+  --dgr:#A32D2D;--dgr-bg:#FBEAEA;
+  --inf:#185FA5;--inf-bg:#E8F4FD;
+  --amb:#854F0B;--amb-bg:#FDF6E3;--amb-line:#E8D48B;--amb-tx:#6d5a12;
+}
+[data-theme="emerald"]{--pri:#66cc8a;--pri-bg:#e7f8ee;--inf:#377cfb;--inf-bg:#e8effe;--dgr:#e5484d;--dgr-bg:#fdecec}
+[data-theme="corporate"]{--pri:#4b6bfb;--pri-bg:#eaeefe;--inf:#5e7ce2;--inf-bg:#edf1fc;--bg2:#f6f7fb;--bg3:#f1f3f9;--line:#e3e6ef;--line2:#eef0f6}
+[data-theme="winter"]{--bg:#ffffff;--bg2:#f2f7ff;--bg3:#ecf3fe;--line:#dbe4f3;--line2:#e9eff9;--inp:#c6d3e8;--pri:#047aff;--pri-bg:#e0efff;--tx:#394e6a;--mut:#6a7f9d;--inf:#6f8bb5;--inf-bg:#e7eefa}
+[data-theme="night"]{--bg:#0f172a;--bg2:#131c31;--bg3:#17213c;--line:#243352;--line2:#1b2841;--inp:#2c3d61;--tx:#e2e8f0;--mut:#94a3b8;--pri:#38bdf8;--pri-bg:#12314a;--dgr:#f87171;--dgr-bg:#3a1d24;--inf:#818cf8;--inf-bg:#1f2547;--amb:#fbbf24;--amb-bg:#3a2f14;--amb-line:#5c4a1e;--amb-tx:#fbbf24}
+[data-theme="business"]{--bg:#212121;--bg2:#1b1b1b;--bg3:#262626;--line:#3a3a3a;--line2:#2c2c2c;--inp:#474747;--tx:#e5e5e5;--mut:#9e9e9e;--pri:#3d6ea5;--pri-bg:#16293d;--dgr:#ef5350;--dgr-bg:#3a2020;--inf:#8fa3ad;--inf-bg:#26323a;--amb:#eab308;--amb-bg:#332b10;--amb-line:#4d411a;--amb-tx:#eab308}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--bg);font-size:13px}
+:root{
+  --bg:var(--bg);--bg2:var(--bg2);--text:var(--tx);--text2:var(--mut);
+  --border:var(--line);--border2:var(--inp);--radius:7px;--radius-lg:10px;
 }
 .app{display:flex;height:100vh;min-height:600px}
-.sb{width:188px;min-width:188px;border-right:0.5px solid #e8e8e4;padding:12px 0;display:flex;flex-direction:column;gap:1px;background:#f7f7f5}
-.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:12px;color:#6b6b6b;border:none;background:none;width:100%;text-align:left}
-.ni:hover{background:#ffffff;color:#1a1a1a}
-.ni.active{background:#ffffff;color:#1a1a1a;font-weight:500}
+.sb{width:188px;min-width:188px;border-right:0.5px solid var(--line);padding:12px 0;display:flex;flex-direction:column;gap:1px;background:var(--bg2)}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:12px;color:var(--mut);border:none;background:none;width:100%;text-align:left}
+.ni:hover{background:var(--bg);color:var(--tx)}
+.ni.active{background:var(--bg);color:var(--tx);font-weight:500}
 .ni i{font-size:15px;width:16px}
-.main{flex:1;overflow-y:auto;padding:24px 28px;background:#ffffff}
+.main{flex:1;overflow-y:auto;padding:24px 28px;background:var(--bg)}
 .page{display:none}.page.active{display:block}
-.pt{font-size:18px;font-weight:600;margin-bottom:18px;color:#1a1a1a}
+.pt{font-size:18px;font-weight:600;margin-bottom:18px;color:var(--tx)}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:20px}
-.card{background:#f7f7f5;border-radius:10px;padding:14px 16px;border:1px solid #e8e8e4}
-.cl{font-size:10px;color:#6b6b6b;margin-bottom:3px}
+.card{background:var(--bg2);border-radius:10px;padding:14px 16px;border:1px solid var(--line)}
+.cl{font-size:10px;color:var(--mut);margin-bottom:3px}
 .cv{font-size:19px;font-weight:500}
-.g{color:#0F6E56}.r{color:#A32D2D}.b{color:#185FA5}.am{color:#854F0B}.pu{color:#534AB7}
+.g{color:var(--pri)}.r{color:var(--dgr)}.b{color:var(--inf)}.am{color:var(--amb)}.pu{color:#534AB7}
 .sec{margin-bottom:22px}
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.st{font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:1.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;cursor:pointer;font-size:12px;font-family:Inter,system-ui,-apple-system,sans-serif;transition:background 0.12s}
-.btn:hover{background:#f7f7f5}
-.bp{background:#1a1a1a;color:#ffffff;border-color:#1a1a1a}.bp:hover{background:#333;border-color:#333}
+.st{font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:1.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);cursor:pointer;font-size:12px;font-family:Inter,system-ui,-apple-system,sans-serif;transition:background 0.12s}
+.btn:hover{background:var(--bg2)}
+.bp{background:var(--tx);color:var(--bg);border-color:var(--tx)}.bp:hover{background:#333;border-color:#333}
 .bs{padding:3px 8px;font-size:11px}
-.bd{color:#A32D2D}.bd:hover{background:#FCEBEB}
-.bg2{color:#0F6E56}.bg2:hover{background:#E1F5EE}
-.bam{color:#854F0B}.bam:hover{background:#FAEEDA}
+.bd{color:var(--dgr)}.bd:hover{background:#FCEBEB}
+.bg2{color:var(--pri)}.bg2:hover{background:var(--pri-bg)}
+.bam{color:var(--amb)}.bam:hover{background:#FAEEDA}
 table{width:100%;border-collapse:collapse}
-th{font-size:10px;font-weight:600;color:#6b6b6b;text-align:left;padding:8px 10px;border-bottom:1.5px solid #e8e8e4;text-transform:uppercase;letter-spacing:0.05em;background:#f7f7f5}
-td{padding:9px 10px;border-bottom:1px solid #f0f0ee;font-size:12px;vertical-align:middle}
+th{font-size:10px;font-weight:600;color:var(--mut);text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--line);text-transform:uppercase;letter-spacing:0.05em;background:var(--bg2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line2);font-size:12px;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#f0f4ff}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
-.ba{background:#E1F5EE;color:#0F6E56}.bpe{background:#FAEEDA;color:#854F0B}.bo{background:#EEEDFE;color:#534AB7}.bd2{background:#F1EFE8;color:#5F5E5A}.bsc{background:#E6F1FB;color:#185FA5}.blow{background:#FCEBEB;color:#A32D2D}.bok{background:#EAF3DE;color:#3B6D11}.bfor{background:#EEEDFE;color:#534AB7}.bpaid{background:#E1F5EE;color:#0F6E56}.bcredit{background:#FAEEDA;color:#854F0B}.bpartial{background:#E6F1FB;color:#185FA5}
+.ba{background:var(--pri-bg);color:var(--pri)}.bpe{background:#FAEEDA;color:var(--amb)}.bo{background:#EEEDFE;color:#534AB7}.bd2{background:#F1EFE8;color:#5F5E5A}.bsc{background:#E6F1FB;color:var(--inf)}.blow{background:#FCEBEB;color:var(--dgr)}.bok{background:#EAF3DE;color:#3B6D11}.bfor{background:#EEEDFE;color:#534AB7}.bpaid{background:var(--pri-bg);color:var(--pri)}.bcredit{background:#FAEEDA;color:var(--amb)}.bpartial{background:#E6F1FB;color:var(--inf)}
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
 .mo.open{display:flex}
-.md{background:#ffffff;border-radius:10px;padding:20px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;border:0.5px solid #e8e8e4}
-.mt{font-size:15px;font-weight:600;margin-bottom:16px;color:#1a1a1a}
+.md{background:var(--bg);border-radius:10px;padding:20px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;border:0.5px solid var(--line)}
+.mt{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--tx)}
 .fg{margin-bottom:12px}
-.fg label{display:block;font-size:10px;color:#6b6b6b;margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
-.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;font-size:12px;font-family:Inter,system-ui,-apple-system,sans-serif;outline:none}.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#185FA5}
+.fg label{display:block;font-size:10px;color:var(--mut);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 10px;border:1.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);font-size:12px;font-family:Inter,system-ui,-apple-system,sans-serif;outline:none}.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--inf)}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;border-top:1.5px solid #e8e8e4;padding-top:14px}
-.sc{background:#f7f7f5;border:1px solid #e8e8e4;border-radius:10px;padding:14px;margin-bottom:9px;cursor:pointer;transition:border-color 0.15s}
-.sc:hover{border-color:#185FA5}
+.ma{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;border-top:1.5px solid var(--line);padding-top:14px}
+.sc{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:9px;cursor:pointer;transition:border-color 0.15s}
+.sc:hover{border-color:var(--inf)}
 .sch{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .sm{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-.smi{background:#ffffff;border-radius:7px;padding:6px 8px}
-.smil{font-size:9px;color:#6b6b6b;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em}
+.smi{background:var(--bg);border-radius:7px;padding:6px 8px}
+.smil{font-size:9px;color:var(--mut);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em}
 .smiv{font-size:12px;font-weight:500}
-.pp{color:#0F6E56}.pn{color:#A32D2D}
-.dp{background:#f7f7f5;border:1px solid #e8e8e4;border-radius:10px;padding:14px;margin-bottom:12px}
-.li{border-bottom:0.5px solid #e8e8e4;padding:8px 0;font-size:11px;display:flex;gap:9px;align-items:flex-start}
+.pp{color:var(--pri)}.pn{color:var(--dgr)}
+.dp{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.li{border-bottom:0.5px solid var(--line);padding:8px 0;font-size:11px;display:flex;gap:9px;align-items:flex-start}
 .li:last-child{border-bottom:none}
-.ld{font-size:10px;color:#6b6b6b;min-width:74px;padding-top:2px}
+.ld{font-size:10px;color:var(--mut);min-width:74px;padding-top:2px}
 .lb{min-width:72px}
-.empty{text-align:center;padding:24px;color:#6b6b6b;font-size:12px}
-.divider{height:0.5px;background:#e8e8e4;margin:16px 0}
-.sbar{background:#ffffff;border-radius:20px;height:5px;flex:1;overflow:hidden}
-.sf{height:100%;border-radius:20px;background:#0F6E56}.sf.low{background:#A32D2D}
-.tab-bar{display:flex;border-bottom:0.5px solid #e8e8e4;margin-bottom:16px}
-.tab{padding:6px 12px;font-size:12px;color:#6b6b6b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px}
-.tab.active{color:#185FA5;font-weight:600;border-bottom-color:#185FA5}
-.na{background:#FFF3E0;border:1px solid #F9A825;border-radius:8px;padding:10px 14px;font-size:12px;color:#854F0B;margin-bottom:12px}
-.nb{background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:12px}
-.ng{background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:#0F6E56;margin-bottom:12px}
+.empty{text-align:center;padding:24px;color:var(--mut);font-size:12px}
+.divider{height:0.5px;background:var(--line);margin:16px 0}
+.sbar{background:var(--bg);border-radius:20px;height:5px;flex:1;overflow:hidden}
+.sf{height:100%;border-radius:20px;background:var(--pri)}.sf.low{background:var(--dgr)}
+.tab-bar{display:flex;border-bottom:0.5px solid var(--line);margin-bottom:16px}
+.tab{padding:6px 12px;font-size:12px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px}
+.tab.active{color:var(--inf);font-weight:600;border-bottom-color:var(--inf)}
+.na{background:#FFF3E0;border:1px solid #F9A825;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amb);margin-bottom:12px}
+.nb{background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px}
+.ng{background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px}
 .np{background:#EDE7F6;border:1px solid #B39DDB;border-radius:8px;padding:10px 14px;font-size:12px;color:#534AB7;margin-bottom:12px}
-.cs{background:#f7f7f5;border-radius:10px;padding:14px;border:1px solid #e8e8e4}
-.cr{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid #e8e8e4}
+.cs{background:var(--bg2);border-radius:10px;padding:14px;border:1px solid var(--line)}
+.cr{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid var(--line)}
 .cr:last-child{border-bottom:none;font-weight:500;padding-top:8px;font-size:13px}
-.cr.sub{color:#6b6b6b;font-size:11px}
-.sbl{padding:0 0 4px;font-size:10px;font-weight:500;border-bottom:0.5px solid #e8e8e4;margin-bottom:5px;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.04em}
+.cr.sub{color:var(--mut);font-size:11px}
+.sbl{padding:0 0 4px;font-size:10px;font-weight:500;border-bottom:0.5px solid var(--line);margin-bottom:5px;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em}
 .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
-.hint{font-size:10px;color:#6b6b6b;margin-top:3px}
-.pc{display:inline-block;background:#f7f7f5;border:0.5px solid #e8e8e4;border-radius:20px;padding:2px 7px;font-size:10px;color:#6b6b6b}
-.rr{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:0.5px solid #e8e8e4}
+.hint{font-size:10px;color:var(--mut);margin-top:3px}
+.pc{display:inline-block;background:var(--bg2);border:0.5px solid var(--line);border-radius:20px;padding:2px 7px;font-size:10px;color:var(--mut)}
+.rr{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:0.5px solid var(--line)}
 .rr:last-child{border-bottom:none}
-.rdh{padding:10px 14px;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8e8e4;background:#f7f7f5}
-.rd{background:#ffffff;border:1px solid #e8e8e4;border-radius:10px;margin-bottom:10px;overflow:hidden}
-.sb-logo{padding:10px 14px 14px;font-size:13px;font-weight:500;border-bottom:0.5px solid #e8e8e4;margin-bottom:6px}
-.sb-logo span{color:#6b6b6b;font-weight:400;font-size:10px;display:block;margin-top:1px}
+.rdh{padding:10px 14px;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:var(--bg2)}
+.rd{background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.sb-logo{padding:10px 14px 14px;font-size:13px;font-weight:500;border-bottom:0.5px solid var(--line);margin-bottom:6px}
+.sb-logo span{color:var(--mut);font-weight:400;font-size:10px;display:block;margin-top:1px}
 .prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.prof-box{background:#f7f7f5;border-radius:7px;padding:10px 12px;border:0.5px solid #e8e8e4}
-.prof-label{font-size:10px;color:#6b6b6b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.prof-box{background:var(--bg2);border-radius:7px;padding:10px 12px;border:0.5px solid var(--line)}
+.prof-label{font-size:10px;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
 .prof-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0}
-.prof-total{display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding-top:5px;margin-top:3px;border-top:0.5px solid #e8e8e4}
+.prof-total{display:flex;justify-content:space-between;font-size:12px;font-weight:500;padding-top:5px;margin-top:3px;border-top:0.5px solid var(--line)}
 /* SALES SPECIFIC */
-.sale-card{background:#f7f7f5;border:0.5px solid #e8e8e4;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.sale-card{background:var(--bg2);border:0.5px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .sale-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.sale-items{font-size:11px;color:#6b6b6b;margin-bottom:6px}
+.sale-items{font-size:11px;color:var(--mut);margin-bottom:6px}
 .sale-footer{display:flex;align-items:center;justify-content:space-between}
-.outstanding-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid #e8e8e4}
+.outstanding-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--line)}
 .outstanding-row:last-child{border-bottom:none}
-.progress-bar-wrap{flex:1;background:#ffffff;border-radius:20px;height:5px;overflow:hidden;max-width:80px}
-.progress-bar{height:100%;border-radius:20px;background:#0F6E56}
-.sale-item-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #e8e8e4}
+.progress-bar-wrap{flex:1;background:var(--bg);border-radius:20px;height:5px;overflow:hidden;max-width:80px}
+.progress-bar{height:100%;border-radius:20px;background:var(--pri)}
+.sale-item-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--line)}
 .sale-item-row:last-child{border-bottom:none}
 
 /* ── Print / PDF styles ── */
@@ -119,18 +133,18 @@ tr:hover td{background:#f0f4ff}
   body { background: white !important; }
 }
 .rep-section { margin-bottom: 20px; }
-.rep-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1.5px solid #e8e8e4; text-transform: uppercase; letter-spacing: 0.05em; }
-.rep-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; border-bottom: 1px solid #f0f0ee; }
-.rep-row.sub { color: #6b6b6b; font-size: 11px; padding-left: 10px; }
-.rep-row.total { font-weight: 600; font-size: 13px; padding-top: 8px; border-top: 1.5px solid #e8e8e4; border-bottom: none; }
-.rep-th { font-size: 10px; font-weight: 600; color: #6b6b6b; text-align: left; padding: 6px 8px; border-bottom: 1.5px solid #e8e8e4; text-transform: uppercase; letter-spacing: 0.04em; background: #f7f7f5; }
-.rep-td { padding: 7px 8px; border-bottom: 1px solid #f0f0ee; font-size: 12px; }
-.rep-r { color: #A32D2D; }
-.rep-empty { font-size: 11px; color: #6b6b6b; padding: 8px 0; font-style: italic; }
+.rep-title { font-size: 13px; font-weight: 700; color: var(--tx); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1.5px solid var(--line); text-transform: uppercase; letter-spacing: 0.05em; }
+.rep-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; border-bottom: 1px solid var(--line2); }
+.rep-row.sub { color: var(--mut); font-size: 11px; padding-left: 10px; }
+.rep-row.total { font-weight: 600; font-size: 13px; padding-top: 8px; border-top: 1.5px solid var(--line); border-bottom: none; }
+.rep-th { font-size: 10px; font-weight: 600; color: var(--mut); text-align: left; padding: 6px 8px; border-bottom: 1.5px solid var(--line); text-transform: uppercase; letter-spacing: 0.04em; background: var(--bg2); }
+.rep-td { padding: 7px 8px; border-bottom: 1px solid var(--line2); font-size: 12px; }
+.rep-r { color: var(--dgr); }
+.rep-empty { font-size: 11px; color: var(--mut); padding: 8px 0; font-style: italic; }
 /* ── Mobile: collapsible menu + comfortable layout ── */
 .topbar{display:none}
 .sb-overlay{display:none}
-.menu-btn{border:none;background:none;font-size:22px;line-height:1;cursor:pointer;color:#1a1a1a;padding:2px 6px}
+.menu-btn{border:none;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--tx);padding:2px 6px}
 .tb-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;letter-spacing:0.02em}
 .tb-brand img{max-height:24px}
 .sb-logo img{max-height:26px;vertical-align:middle;margin-right:7px}
@@ -138,7 +152,7 @@ tr:hover td{background:#f0f4ff}
   .sb{position:fixed;left:0;top:0;bottom:0;width:232px;z-index:60;transform:translateX(-105%);transition:transform .22s ease;box-shadow:2px 0 14px rgba(0,0,0,0.12)}
   body.menu-open .sb{transform:translateX(0)}
   body.menu-open .sb-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:50}
-  .topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;background:#ffffff;padding:10px 4px;border-bottom:1px solid #e8e8e4;margin:-12px -2px 12px}
+  .topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;background:var(--bg);padding:10px 4px;border-bottom:1px solid var(--line);margin:-12px -2px 12px}
   .main{padding:12px 14px}
   .fr{grid-template-columns:1fr}
   .prof-grid{grid-template-columns:1fr}
@@ -165,6 +179,17 @@ tr:hover td{background:#f0f4ff}
   <button class="ni" onclick="nav('finance',this)">Finance</button>
   <button class="ni" onclick="nav('holidays',this)">Holidays</button>
   <button class="ni" onclick="nav('company',this)">Company</button>
+  <div style="margin-top:auto;padding:10px 14px 4px">
+    <label style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;font-weight:600">Theme</label>
+    <select id="theme-sel" onchange="setTheme(this.value)" style="width:100%;margin-top:4px;padding:6px 8px;font-size:12px;border:1.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx)">
+      <option value="raiyvina">Raiyvina green</option>
+      <option value="emerald">Emerald</option>
+      <option value="corporate">Corporate</option>
+      <option value="winter">Winter</option>
+      <option value="night">Night (dark)</option>
+      <option value="business">Business (dark)</option>
+    </select>
+  </div>
 </div>
 <div class="main">
 <div class="topbar"><button class="menu-btn" onclick="toggleMenu()">☰</button><span class="tb-brand"><img id="tb-logo" style="display:none" alt=""><span id="tb-brand-name">RAIYVINA</span></span></div>
@@ -172,21 +197,21 @@ tr:hover td{background:#f0f4ff}
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="pt">Overview</div>
-  <div id="gs-banner" style="background:#EBF5FF;border:1.5px solid #185FA5;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,95,165,0.08)">
-    <span style="font-size:13px;color:#185FA5;font-weight:500">☁ Google Sheets sync</span>
-    <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid #185FA5;border-radius:6px;font-size:12px;font-family:sans-serif;color:#333">
-    <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:#185FA5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
+  <div id="gs-banner" style="background:#EBF5FF;border:1.5px solid var(--inf);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,95,165,0.08)">
+    <span style="font-size:13px;color:var(--inf);font-weight:500">☁ Google Sheets sync</span>
+    <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid var(--inf);border-radius:6px;font-size:12px;font-family:sans-serif;color:#333">
+    <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:var(--inf);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
     <span id="gs-banner-status" style="font-size:12px"></span>
   </div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em">Period</span>
-    <select id="dash-period" onchange="_dashPeriod=this.value;renderDash()" style="padding:5px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
+    <span style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Period</span>
+    <select id="dash-period" onchange="_dashPeriod=this.value;renderDash()" style="padding:5px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
       <option value="month">This month</option>
       <option value="lastmonth">Last month</option>
       <option value="year">This year</option>
       <option value="all">All time</option>
     </select>
-    <span id="dash-period-label" style="font-size:11px;color:#6b6b6b"></span>
+    <span id="dash-period-label" style="font-size:11px;color:var(--mut)"></span>
   </div>
   <div class="cards" id="dash-period-cards" style="margin-bottom:10px"></div>
   <div class="cards" id="dash-cards"></div>
@@ -207,7 +232,7 @@ tr:hover td{background:#f0f4ff}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div class="pt" style="margin:0">Daily roster</div>
     <div style="display:flex;align-items:center;gap:8px">
-      <input type="date" id="roster-date" style="padding:6px 9px;border:0.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" onchange="renderRoster()">
+      <input type="date" id="roster-date" style="padding:6px 9px;border:0.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" onchange="renderRoster()">
       <button class="btn bp" onclick="openModal('modal-roster')">+Add</button>
     </div>
   </div>
@@ -346,9 +371,9 @@ tr:hover td{background:#f0f4ff}
     <div class="pt" style="margin:0">Reports</div>
     <button class="btn bp" onclick="window.print()">🖨Print / Save PDF</button>
   </div>
-  <div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
-    <div class="fg" style="margin:0;flex:1;min-width:140px"><label>From date</label><input type="date" id="rep-from" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
-    <div class="fg" style="margin:0;flex:1;min-width:140px"><label>To date</label><input type="date" id="rep-to" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
+  <div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+    <div class="fg" style="margin:0;flex:1;min-width:140px"><label>From date</label><input type="date" id="rep-from" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
+    <div class="fg" style="margin:0;flex:1;min-width:140px"><label>To date</label><input type="date" id="rep-to" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
     <button class="btn bp" onclick="generateReport()" style="height:36px">📊Generate report</button>
   </div>
   <div id="report-output"></div>
@@ -370,18 +395,18 @@ tr:hover td{background:#f0f4ff}
     <div class="tab" onclick="fPO('unpaid',this)">Unpaid</div>
   </div>
   <div id="po-list"></div>
-  <div style="height:0.5px;background:#e8e8e4;margin:18px 0"></div>
+  <div style="height:0.5px;background:var(--line);margin:18px 0"></div>
   <div id="po-ext"></div>
 </div>
 
 <!-- SETTLEMENTS -->
 <div id="page-settlements" class="page">
   <div class="pt">Material cost settlements</div>
-  <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:16px">Settling transfers the cost of materials taken from your own warehouse from the construction account to the material business. Materials bought externally from other suppliers are excluded — those were paid directly. Settle at any time, even after job completion.</div>
-  <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em">Unsettled</span></div><div id="settle-unsettled"></div></div>
-  <div style="height:0.5px;background:#e8e8e4;margin:16px 0"></div>
-  <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em">Settlement history</span></div><div id="settle-history"></div></div>
-  <div style="height:0.5px;background:#e8e8e4;margin:16px 0"></div>
+  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:16px">Settling transfers the cost of materials taken from your own warehouse from the construction account to the material business. Materials bought externally from other suppliers are excluded — those were paid directly. Settle at any time, even after job completion.</div>
+  <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Unsettled</span></div><div id="settle-unsettled"></div></div>
+  <div style="height:0.5px;background:var(--line);margin:16px 0"></div>
+  <div class="sec"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Settlement history</span></div><div id="settle-history"></div></div>
+  <div style="height:0.5px;background:var(--line);margin:16px 0"></div>
   <div id="settle-vendors"></div>
 </div>
 
@@ -428,7 +453,7 @@ tr:hover td{background:#f0f4ff}
 
 <div id="page-company" class="page">
   <div class="ph"><div class="pt" style="margin:0">Company details</div></div>
-  <div style="font-size:11px;color:#6b6b6b;margin-bottom:12px">Used on quotations and invoices. Saved to your Google Sheet like everything else.</div>
+  <div style="font-size:11px;color:var(--mut);margin-bottom:12px">Used on quotations and invoices. Saved to your Google Sheet like everything else.</div>
   <div class="fr">
     <div class="fg"><label>Company name</label><input id="co-name" placeholder="e.g. RAIYVINA"></div>
     <div class="fg"><label>Registration number</label><input id="co-reg" placeholder="e.g. SP16822021"></div>
@@ -446,8 +471,8 @@ tr:hover td{background:#f0f4ff}
     <div class="fg"><label>GST / TIN number (optional)</label><input id="co-gst" placeholder="for the future"></div>
   </div>
   <div class="fr">
-    <div class="fg"><label>Signature / stamp picture</label><input type="file" id="co-sign" accept="image/*" onchange="coImg(this,'signImg','co-sign-prev')"><div style="margin-top:6px"><img id="co-sign-prev" style="max-height:56px;display:none;border:1px solid #e8e8e4;border-radius:6px;padding:2px"></div></div>
-    <div class="fg"><label>Logo (optional)</label><input type="file" id="co-logo" accept="image/*" onchange="coImg(this,'logoImg','co-logo-prev')"><div style="margin-top:6px"><img id="co-logo-prev" style="max-height:56px;display:none;border:1px solid #e8e8e4;border-radius:6px;padding:2px"></div></div>
+    <div class="fg"><label>Signature / stamp picture</label><input type="file" id="co-sign" accept="image/*" onchange="coImg(this,'signImg','co-sign-prev')"><div style="margin-top:6px"><img id="co-sign-prev" style="max-height:56px;display:none;border:1px solid var(--line);border-radius:6px;padding:2px"></div></div>
+    <div class="fg"><label>Logo (optional)</label><input type="file" id="co-logo" accept="image/*" onchange="coImg(this,'logoImg','co-logo-prev')"><div style="margin-top:6px"><img id="co-logo-prev" style="max-height:56px;display:none;border:1px solid var(--line);border-radius:6px;padding:2px"></div></div>
   </div>
   <button class="btn bp" onclick="saveCompany()">Save company details</button>
 </div>
@@ -484,7 +509,7 @@ tr:hover td{background:#f0f4ff}
   <input type="hidden" id="w-id">
   <div class="nb">Each "work" is a specific job agreed with the client — e.g. "Foundation", "Tiling", "Electrical". You can add multiple works to the same site over time.</div>
   <div class="fg"><label>Work description</label><input id="w-desc" placeholder="e.g. Foundation work, Tiling 2nd floor, Electrical wiring"></div>
-  <div class="fg"><label>Agreed price (MVR)</label><input id="w-price" type="number" placeholder="0"><div class="hint" style="font-size:10px;color:#6b6b6b;margin-top:3px">Total agreed price for this specific work</div></div>
+  <div class="fg"><label>Agreed price (MVR)</label><input id="w-price" type="number" placeholder="0"><div class="hint" style="font-size:10px;color:var(--mut);margin-top:3px">Total agreed price for this specific work</div></div>
   <div class="fg"><label>Date agreed</label><input id="w-date" type="date"></div>
   <div class="fg"><label>Notes (optional)</label><input id="w-notes" placeholder="e.g. includes materials, or labour only"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-work')">Cancel</button><button class="btn bp" id="w-save-btn" onclick="saveWork()">Add work</button></div>
@@ -513,12 +538,12 @@ tr:hover td{background:#f0f4ff}
       <div class="fg"><label>Home country</label><input id="e-country" placeholder="e.g. Bangladesh"></div>
     </div>
     <div class="fg"><label>Benefits you are responsible for</label>
-      <div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:#f7f7f5;border-radius:7px;border:1px solid #e8e8e4;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:#1a1a1a;font-weight:400;cursor:pointer"><input type="checkbox" id="e-ben-food" checked style="width:14px;height:14px"> Food allowance — MVR 1,000/mo</label>
-        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:#1a1a1a;font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-visa" checked style="width:14px;height:14px"> Visa fee</label><input id="e-ben-visa-amt" type="number" placeholder="350" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/mo</span></div>
-        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:#1a1a1a;font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-quota" checked style="width:14px;height:14px"> Quota fee</label><input id="e-ben-quota-amt" type="number" placeholder="2000" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/yr</span></div>
-        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:#1a1a1a;font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-insurance" checked style="width:14px;height:14px"> Insurance</label><input id="e-ben-insurance-amt" type="number" placeholder="800" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/yr</span></div>
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:#1a1a1a;font-weight:400;cursor:pointer"><input type="checkbox" id="e-ben-ticket" checked style="width:14px;height:14px"> Return ticket (every 2 yrs)</label>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--bg2);border-radius:7px;border:1px solid var(--line);margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--tx);font-weight:400;cursor:pointer"><input type="checkbox" id="e-ben-food" checked style="width:14px;height:14px"> Food allowance — MVR 1,000/mo</label>
+        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--tx);font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-visa" checked style="width:14px;height:14px"> Visa fee</label><input id="e-ben-visa-amt" type="number" placeholder="350" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/mo</span></div>
+        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--tx);font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-quota" checked style="width:14px;height:14px"> Quota fee</label><input id="e-ben-quota-amt" type="number" placeholder="2000" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/yr</span></div>
+        <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--tx);font-weight:400;cursor:pointer;flex:1"><input type="checkbox" id="e-ben-insurance" checked style="width:14px;height:14px"> Insurance</label><input id="e-ben-insurance-amt" type="number" placeholder="800" style="width:84px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/yr</span></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--tx);font-weight:400;cursor:pointer"><input type="checkbox" id="e-ben-ticket" checked style="width:14px;height:14px"> Return ticket (every 2 yrs)</label>
       </div>
     </div>
   </div>
@@ -530,12 +555,12 @@ tr:hover td{background:#f0f4ff}
 <div class="mo" id="modal-edit-emp"><div class="md" style="max-width:400px">
   <div class="mt">Update salary</div>
   <input type="hidden" id="edit-emp-id">
-  <div id="edit-emp-name" style="font-weight:600;font-size:14px;margin-bottom:12px;color:#1a1a1a"></div>
+  <div id="edit-emp-name" style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--tx)"></div>
   <div class="fr">
     <div class="fg"><label>New monthly salary (MVR)</label><input id="edit-emp-monthly" type="number" placeholder="0" oninput="calcEditRate()"></div>
-    <div class="fg"><label>Daily rate ref. (MVR)</label><input id="edit-emp-rate" type="number" placeholder="Auto"><div class="hint" style="font-size:10px;color:#6b6b6b;margin-top:2px">Leave blank to auto-calculate</div></div>
+    <div class="fg"><label>Daily rate ref. (MVR)</label><input id="edit-emp-rate" type="number" placeholder="Auto"><div class="hint" style="font-size:10px;color:var(--mut);margin-top:2px">Leave blank to auto-calculate</div></div>
   </div>
-  <div id="edit-emp-calc" style="font-size:11px;color:#6b6b6b;margin-bottom:10px"></div>
+  <div id="edit-emp-calc" style="font-size:11px;color:var(--mut);margin-bottom:10px"></div>
   <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:10px"><input type="checkbox" id="edit-emp-manager" style="width:14px;height:14px"> Manager — auto-allocated to every site with crew; day rate splits across them</label>
   <div class="ma"><button class="btn" onclick="closeModal('modal-edit-emp')">Cancel</button><button class="btn bp" onclick="saveEmpSalary()">Save changes</button></div>
 </div></div>
@@ -546,9 +571,9 @@ tr:hover td{background:#f0f4ff}
   <div class="fg"><label>Date</label><input type="date" id="ra-date" onchange="popCrewChecklist()"></div>
   <div class="fg"><label>Worksite</label><select id="ra-site" onchange="popCrewChecklist()"></select></div>
   <div class="fg"><label>Crew — tick everyone working at this site</label>
-    <div id="ra-crew" style="max-height:270px;overflow-y:auto;border:1px solid #e8e8e4;border-radius:8px;padding:4px 10px"></div>
+    <div id="ra-crew" style="max-height:270px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 10px"></div>
   </div>
-  <div id="ra-summary" style="font-size:11px;color:#6b6b6b;margin-bottom:8px"></div>
+  <div id="ra-summary" style="font-size:11px;color:var(--mut);margin-bottom:8px"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-roster')">Cancel</button><button class="btn bp" onclick="saveRosterMulti()">Save crew</button></div>
 </div></div>
 
@@ -558,7 +583,7 @@ tr:hover td{background:#f0f4ff}
   <input type="hidden" id="log-type">
   <div id="lf-income" style="display:none">
     <div class="fg"><label>Income type</label>
-      <select id="log-income-type" onchange="onIncomeType()" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
+      <select id="log-income-type" onchange="onIncomeType()" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
         <option value="full">Work payment — log now, split later</option>
         <option value="split">Split now — specify labour &amp; material amounts</option>
         <option value="advance">Advance payment — before work starts</option>
@@ -572,12 +597,12 @@ tr:hover td{background:#f0f4ff}
     </div>
     <div id="lf-income-advance" style="display:none">
       <div class="fg"><label>Advance amount (MVR)</label><input id="log-adv" type="number" placeholder="e.g. 15000"></div>
-      <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:10px">Recorded as an advance. You can split it into labour / material later once the work is complete.</div>
+      <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Recorded as an advance. You can split it into labour / material later once the work is complete.</div>
     </div>
     <div id="lf-income-full" style="display:none">
       <div class="fg"><label>Amount received (MVR)</label><input id="log-inamt" type="number" placeholder="e.g. 111725"></div>
       <div class="fg"><label>For which work (optional)</label><select id="log-inwork"></select></div>
-      <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:10px">Logged as one payment now. Use the ✂ Split button on the log entry when you're ready to divide it into labour / materials.</div>
+      <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px">Logged as one payment now. Use the ✂ Split button on the log entry when you're ready to divide it into labour / materials.</div>
     </div>
     <div id="loginc-methodwrap"></div>
   </div>
@@ -595,7 +620,7 @@ tr:hover td{background:#f0f4ff}
     <div id="lf-mat-wh">
       <div class="fg"><label>Material</label><select id="log-mkey" onchange="updateMatAvail()"></select></div>
       <div class="fg"><label>Quantity <span id="log-munit" style="font-weight:400;text-transform:none"></span></label><input id="log-mqty" type="number" placeholder="0" oninput="updateMatAvail()"></div>
-      <div id="log-mavail" style="font-size:10px;color:#6b6b6b;margin-bottom:10px;margin-top:-6px"></div>
+      <div id="log-mavail" style="font-size:10px;color:var(--mut);margin-bottom:10px;margin-top:-6px"></div>
     </div>
     <div id="lf-mat-ext" style="display:none">
       <div class="fg"><label>Description</label><input id="log-mdesc" placeholder="e.g. 50 bags cement from hardware"></div>
@@ -604,14 +629,14 @@ tr:hover td{background:#f0f4ff}
       <div class="fg"><label>Payment</label><select id="log-mpaid" onchange="onMPaid()"><option value="paid">Paid now</option><option value="credit">On credit — pay vendor later</option></select></div>
       <div id="xp-methodwrap"></div>
     </div>
-    <div class="fg"><label>Cost (MVR) <span id="log-mcost-hint" style="font-weight:400;text-transform:none;color:#6b6b6b"></span></label><input id="log-mcost" type="number" placeholder="0"></div>
+    <div class="fg"><label>Cost (MVR) <span id="log-mcost-hint" style="font-weight:400;text-transform:none;color:var(--mut)"></span></label><input id="log-mcost" type="number" placeholder="0"></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin:2px 0 8px"><input type="checkbox" id="log-mbill" onchange="onBillToggle()" style="width:14px;height:14px"> Extra — NOT in the quoted price, bill to client at the end</label>
     <div id="log-bill-wrap" style="display:none">
       <div class="fr">
-        <div class="fg"><label>Bill client (MVR)</label><input id="log-mbillamt" type="number" placeholder="same as cost"><div class="hint" style="font-size:10px;color:#6b6b6b;margin-top:3px">What the client will be charged — add margin if you wish</div></div>
+        <div class="fg"><label>Bill client (MVR)</label><input id="log-mbillamt" type="number" placeholder="same as cost"><div class="hint" style="font-size:10px;color:var(--mut);margin-top:3px">What the client will be charged — add margin if you wish</div></div>
         <div class="fg"><label>For which work (optional)</label><select id="log-mbillwork"></select></div>
       </div>
-      <div style="background:#FDF6E3;border:1px solid #E8D48B;border-radius:8px;padding:9px 13px;font-size:11px;color:#6d5a12;margin-bottom:10px">Accumulates under "Billable extras" and joins the client's bill when the linked work is completed (immediately if not linked). It will appear on the invoice.</div>
+      <div style="background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:8px;padding:9px 13px;font-size:11px;color:var(--amb-tx);margin-bottom:10px">Accumulates under "Billable extras" and joins the client's bill when the linked work is completed (immediately if not linked). It will appear on the invoice.</div>
     </div>
   </div>
   <div id="lf-note" style="display:none">
@@ -641,14 +666,14 @@ tr:hover td{background:#f0f4ff}
     <div class="fg"><label>Starting qty in warehouse</label><input id="mat-qty" type="number" placeholder="0"></div>
     <div class="fg"><label>Low-stock alert at</label><input id="mat-alert" type="number" placeholder="0"></div>
   </div>
-  <div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:12px">
-    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b6b6b;margin-bottom:10px">🚢 Landing costs (per unit) — used to auto-calculate cost when stock moves to a site</div>
+  <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--mut);margin-bottom:10px">🚢 Landing costs (per unit) — used to auto-calculate cost when stock moves to a site</div>
     <div class="fr3">
       <div class="fg"><label>Wholesale cost</label><input id="mat-wholesale" type="number" placeholder="0" oninput="updateMatLandedPreview()"><div class="hint">Price paid to supplier</div></div>
       <div class="fg"><label>Boat / delivery</label><input id="mat-boat" type="number" placeholder="0" oninput="updateMatLandedPreview()"><div class="hint">Shipping cost per unit</div></div>
       <div class="fg"><label>Warehousing</label><input id="mat-whouse" type="number" placeholder="0" oninput="updateMatLandedPreview()"><div class="hint">Labour + pickup per unit</div></div>
     </div>
-    <div id="mat-landed-preview" style="font-size:11px;color:#0F6E56;margin-top:4px"></div>
+    <div id="mat-landed-preview" style="font-size:11px;color:var(--pri);margin-top:4px"></div>
   </div>
   <div class="fg"><label>Default sale price per unit (MVR)</label><input id="mat-price" type="number" placeholder="0"><div class="hint">Can be changed any time and overridden on each sale.</div></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-add-mat')">Cancel</button><button class="btn bp" onclick="addMatType()">Add material</button></div>
@@ -670,7 +695,7 @@ tr:hover td{background:#f0f4ff}
 <div class="mo" id="modal-set-price"><div class="md">
   <div class="mt">Set default sale price</div>
   <input type="hidden" id="sp-key">
-  <div id="sp-info" style="font-size:12px;color:#6b6b6b;margin-bottom:12px"></div>
+  <div id="sp-info" style="font-size:12px;color:var(--mut);margin-bottom:12px"></div>
   <div class="fg"><label>Default sale price per unit (MVR)</label><input id="sp-price" type="number" placeholder="0"><div class="hint">This is used as the default when creating a new sale. You can override it per sale.</div></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-set-price')">Cancel</button><button class="btn bp" onclick="saveSalePrice()">Save</button></div>
 </div></div>
@@ -690,7 +715,7 @@ tr:hover td{background:#f0f4ff}
     <button class="btn bs" style="margin-top:6px" onclick="addSaleItem()">+Add item</button>
   </div>
 
-  <div id="sale-total-preview" style="font-size:12px;color:#6b6b6b;margin-bottom:10px;padding:8px;background:#f7f7f5;border-radius:7px">Total: MVR 0.00</div>
+  <div id="sale-total-preview" style="font-size:12px;color:var(--mut);margin-bottom:10px;padding:8px;background:var(--bg2);border-radius:7px">Total: MVR 0.00</div>
 
   <div class="fg"><label>Payment type</label>
     <select id="sale-paytype" onchange="onSalePayType()">
@@ -761,7 +786,7 @@ tr:hover td{background:#f0f4ff}
   </div>
   <div class="fr">
     <div class="fg"><label>From date</label><input id="leave-from" type="date"></div>
-    <div class="fg"><label>To date</label><input id="leave-to" type="date"><div class="hint" style="font-size:10px;color:#6b6b6b;margin-top:2px">Same as from = single day</div></div>
+    <div class="fg"><label>To date</label><input id="leave-to" type="date"><div class="hint" style="font-size:10px;color:var(--mut);margin-top:2px">Same as from = single day</div></div>
   </div>
   <div class="fg"><label>Note (optional)</label><input id="leave-note" placeholder="e.g. doctor's appointment, travel"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-leave')">Cancel</button><button class="btn bp" onclick="saveLeave()">Save leave</button></div>
@@ -778,7 +803,7 @@ tr:hover td{background:#f0f4ff}
     <div class="fg"><label>Boat / delivery/unit</label><input id="el-boat" type="number" placeholder="0" oninput="updateElPreview()"></div>
     <div class="fg"><label>Warehousing/unit</label><input id="el-whouse" type="number" placeholder="0" oninput="updateElPreview()"></div>
   </div>
-  <div id="el-preview" style="font-size:12px;color:#0F6E56;padding:8px;background:#E8F5E9;border-radius:7px;margin-bottom:10px"></div>
+  <div id="el-preview" style="font-size:12px;color:var(--pri);padding:8px;background:#E8F5E9;border-radius:7px;margin-bottom:10px"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-edit-landed')">Cancel</button><button class="btn bp" onclick="saveEditLanded()">Save</button></div>
 </div></div>
 
@@ -794,17 +819,17 @@ tr:hover td{background:#f0f4ff}
     <div id="po-items-wrap"></div>
     <button class="btn" style="margin-top:6px;font-size:11px" onclick="addPOItemRow()">+ Add item</button>
   </div>
-  <div id="po-wholesale-total" style="font-size:11px;color:#6b6b6b;padding:7px;background:#f7f7f5;border-radius:7px;margin-bottom:10px"></div>
-  <div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:10px">
-    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b6b6b;margin-bottom:10px">GST / Tax</div>
+  <div id="po-wholesale-total" style="font-size:11px;color:var(--mut);padding:7px;background:var(--bg2);border-radius:7px;margin-bottom:10px"></div>
+  <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--mut);margin-bottom:10px">GST / Tax</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;font-weight:400">
         <input type="checkbox" id="po-gst-apply" onchange="updatePOGST()" style="width:14px;height:14px"> Apply GST
       </label>
       <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:12px;color:#6b6b6b">Rate:</span>
-        <input type="number" id="po-gst-rate" value="8" step="0.1" style="width:60px;padding:5px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="updatePOGST()">
-        <span style="font-size:12px;color:#6b6b6b">%</span>
+        <span style="font-size:12px;color:var(--mut)">Rate:</span>
+        <input type="number" id="po-gst-rate" value="8" step="0.1" style="width:60px;padding:5px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="updatePOGST()">
+        <span style="font-size:12px;color:var(--mut)">%</span>
       </div>
     </div>
     <div id="po-gst-preview" style="margin-top:8px;font-size:12px"></div>
@@ -819,28 +844,28 @@ tr:hover td{background:#f0f4ff}
   <input type="hidden" id="rcv-po-id">
   <div id="rcv-info" class="nb"></div>
   <div id="rcv-items-wrap"></div>
-  <div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:12px">
-    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#6b6b6b;margin-bottom:10px">🚢 Landing costs for this delivery</div>
+  <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
+    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--mut);margin-bottom:10px">🚢 Landing costs for this delivery</div>
     <div class="fr3">
       <div class="fg"><label>Boat / delivery (MVR)</label>
-        <select id="rcv-boat-mode" onchange="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif;margin-bottom:6px">
+        <select id="rcv-boat-mode" onchange="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif;margin-bottom:6px">
           <option value="per-unit">Per unit (mat. default)</option>
           <option value="override">Override per unit</option>
           <option value="flat">Flat fee</option>
         </select>
-        <input id="rcv-boat-val" type="number" placeholder="0" oninput="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
+        <input id="rcv-boat-val" type="number" placeholder="0" oninput="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
       </div>
       <div class="fg"><label>Warehousing (MVR)</label>
-        <select id="rcv-wh-mode" onchange="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif;margin-bottom:6px">
+        <select id="rcv-wh-mode" onchange="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif;margin-bottom:6px">
           <option value="per-unit">Per unit (mat. default)</option>
           <option value="override">Override per unit</option>
           <option value="flat">Flat fee</option>
         </select>
-        <input id="rcv-wh-val" type="number" placeholder="0" oninput="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
+        <input id="rcv-wh-val" type="number" placeholder="0" oninput="updateRcvTotals()" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
       </div>
-      <div class="fg"><label>Receive date</label><input id="rcv-date" type="date" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
+      <div class="fg"><label>Receive date</label><input id="rcv-date" type="date" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></div>
     </div>
-    <div id="rcv-cost-preview" style="font-size:11px;color:#0F6E56;margin-top:4px"></div>
+    <div id="rcv-cost-preview" style="font-size:11px;color:var(--pri);margin-top:4px"></div>
   </div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-receive')">Cancel</button><button class="btn bp" onclick="saveReceive()">Confirm receipt</button></div>
 </div></div>
@@ -863,9 +888,9 @@ tr:hover td{background:#f0f4ff}
 <div class="mo" id="modal-settle"><div class="md" style="max-width:440px">
   <div class="mt">Settle material cost</div>
   <input type="hidden" id="settle-site-id">
-  <div id="settle-info" style="background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:#0F6E56;margin-bottom:12px"></div>
+  <div id="settle-info" style="background:#E8F5E9;border:1px solid #81C784;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--pri);margin-bottom:12px"></div>
   <div id="settle-breakdown" style="margin-bottom:12px"></div>
-  <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:12px">This transfers the cost of materials taken from your own warehouse to the material business. Materials bought externally from other suppliers are not included — those were already paid for directly.</div>
+  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">This transfers the cost of materials taken from your own warehouse to the material business. Materials bought externally from other suppliers are not included — those were already paid for directly.</div>
   <div class="fg"><label>Settlement date</label><input id="settle-date" type="date"></div>
   <div class="fg"><label>Note (optional)</label><input id="settle-note" placeholder="e.g. settled after final payment received"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-settle')">Cancel</button><button class="btn bp" onclick="doSettle()">Confirm settlement</button></div>
@@ -874,14 +899,14 @@ tr:hover td{background:#f0f4ff}
 <!-- DAY WORKER -->
 <div class="mo" id="modal-dayworker"><div class="md" style="max-width:420px">
   <div class="mt">Add day worker</div>
-  <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:12px">Day workers are not in the employee list. Enter their details and day rate manually — the labour cost is logged to the selected site.</div>
+  <div style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:12px">Day workers are not in the employee list. Enter their details and day rate manually — the labour cost is logged to the selected site.</div>
   <div class="fg"><label>Name</label><input id="dw-name" placeholder="e.g. Hassan (carpenter)"></div>
   <div class="fr">
     <div class="fg"><label>Date</label><input id="dw-date" type="date"></div>
     <div class="fg"><label>Day rate (MVR)</label><input id="dw-rate" type="number" placeholder="0"></div>
   </div>
   <div class="fg"><label>Worksite</label>
-    <select id="dw-site" style="width:100%;padding:7px 9px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></select>
+    <select id="dw-site" style="width:100%;padding:7px 9px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></select>
   </div>
   <div class="fg"><label>Note (optional)</label><input id="dw-note" placeholder="e.g. tiling, formwork"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-dayworker')">Cancel</button><button class="btn bp" onclick="saveDayWorker()">Add</button></div>
@@ -1013,7 +1038,7 @@ const normDate=v=>{
 const firstDayOfMonth=()=>{const d=new Date();d.setDate(1);return d.toISOString().split('T')[0];};
 const firstDayOfYear=()=>{const d=new Date();d.setMonth(0,1);return d.toISOString().split('T')[0];};
 const ini=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-const AVCOL=[['#E6F1FB','#185FA5'],['#E1F5EE','#0F6E56'],['#EEEDFE','#534AB7'],['#FAEEDA','#854F0B'],['#FAECE7','#993C1D']];
+const AVCOL=[['#E6F1FB','var(--inf)'],['var(--pri-bg)','var(--pri)'],['#EEEDFE','#534AB7'],['#FAEEDA','var(--amb)'],['#FAECE7','#993C1D']];
 const avc=id=>AVCOL[(id-1)%AVCOL.length];
 
 function isFriday(d){return new Date(d).getDay()===5}
@@ -1208,21 +1233,21 @@ function renderDash(){
     <div class="card"><div class="cl">Machinery (active)</div><div class="cv" style="font-size:13px">${machActive} items · ${fmt(machTotal)}</div></div>
   `;
   document.getElementById('dash-sites').innerHTML=active.length?active.map(siteCard).join(''):'<div class="empty">No active worksites</div>';
-  document.getElementById('dash-sched').innerHTML=sched.length?sched.map(s=>`<div class="sc" onclick="openDetail(${s.id})"><div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span>${getBadge(s)}</div><div style="font-size:11px;color:#6b6b6b">${s.loc}${s.expectedStart?' · Expected: '+s.expectedStart:''}</div></div>`).join(''):'<div style="font-size:11px;color:#6b6b6b">None scheduled</div>';
+  document.getElementById('dash-sched').innerHTML=sched.length?sched.map(s=>`<div class="sc" onclick="openDetail(${s.id})"><div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span>${getBadge(s)}</div><div style="font-size:11px;color:var(--mut)">${s.loc}${s.expectedStart?' · Expected: '+s.expectedStart:''}</div></div>`).join(''):'<div style="font-size:11px;color:var(--mut)">None scheduled</div>';
   const alerts=Object.entries(D.stocks).filter(([k,v])=>v.wQty<=v.alert);
-  document.getElementById('dash-stock').innerHTML=alerts.length?alerts.map(([k,v])=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:0.5px solid #e8e8e4;font-size:12px">⚠<b>${v.name}</b>: ${v.wQty} ${v.unit} in warehouse</div>`).join(''):'<div style="font-size:11px;color:#6b6b6b">✓ All stock levels healthy</div>';
+  document.getElementById('dash-stock').innerHTML=alerts.length?alerts.map(([k,v])=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:0.5px solid var(--line);font-size:12px">⚠<b>${v.name}</b>: ${v.wQty} ${v.unit} in warehouse</div>`).join(''):'<div style="font-size:11px;color:var(--mut)">✓ All stock levels healthy</div>';
   const credits=D.sales.filter(s=>saleOutstanding(s)>0);
   document.getElementById('dash-credit').innerHTML=credits.length?credits.slice(0,5).map(s=>{
     const tot=saleTotal(s),paid=salePaid(s),out=saleOutstanding(s),pct=Math.round(paid/tot*100);
     return `<div class="outstanding-row">
-      <div style="flex:1"><div style="font-weight:500;font-size:12px">${s.customer}</div><div style="font-size:10px;color:#6b6b6b">${s.date} · ${s.items.map(i=>i.name||i.matName||'?').join(', ')}</div></div>
+      <div style="flex:1"><div style="font-weight:500;font-size:12px">${s.customer}</div><div style="font-size:10px;color:var(--mut)">${s.date} · ${s.items.map(i=>i.name||i.matName||'?').join(', ')}</div></div>
       <div style="text-align:right;min-width:90px">
-        <div style="font-weight:500;font-size:12px;color:#A32D2D">${fmt(out)}</div>
+        <div style="font-weight:500;font-size:12px;color:var(--dgr)">${fmt(out)}</div>
         <div class="progress-bar-wrap" style="margin-left:auto;margin-top:3px"><div class="progress-bar" style="width:${pct}%"></div></div>
       </div>
       <button class="btn bs bg2" onclick="openPayment(${s.id})">💰Pay</button>
     </div>`;
-  }).join(''):'<div style="font-size:11px;color:#6b6b6b">✓ No outstanding balances</div>';
+  }).join(''):'<div style="font-size:11px;color:var(--mut)">✓ No outstanding balances</div>';
 }
 
 // What a client owes right now: value of completed works minus every
@@ -1266,12 +1291,12 @@ function renderInternalSales(){
   const list=allMatSettlements();
   if(!list.length){el.innerHTML='';return;}
   const total=list.reduce((a,m)=>a+m.amount,0);
-  const rows=list.map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
-    <span style="flex:1"><b>${m.siteName}</b> <span class="badge" style="background:#E8F4FD;color:#185FA5;font-size:9px">INTERNAL</span><div style="font-size:10px;color:#6b6b6b">${m.date}${m.note?' · '+m.note:''}</div></span>
+  const rows=list.map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:12px">
+    <span style="flex:1"><b>${m.siteName}</b> <span class="badge" style="background:var(--inf-bg);color:var(--inf);font-size:9px">INTERNAL</span><div style="font-size:10px;color:var(--mut)">${m.date}${m.note?' · '+m.note:''}</div></span>
     <span style="display:inline-flex;align-items:center;gap:8px"><b>${fmt(m.amount)}</b><button class="btn bs" style="font-size:10px" onclick="openDetail(${m.siteId})">Open site</button></span>
   </div>`);
   el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Internal sales — worksite material settlements · ${fmt(total)}</span></div>
-    <div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">Materials your own worksites settled with the material business. Recorded automatically from settlements — always fully paid.</div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:6px">Materials your own worksites settled with the material business. Recorded automatically from settlements — always fully paid.</div>
     ${limitLog(rows,'intsales','renderInternalSales()',8)}</div>`;
 }
 function clientReceivables(){
@@ -1283,19 +1308,19 @@ function renderFinReceivables(){
   const list=clientReceivables();
   if(!list.length){el.innerHTML='';return;}
   const total=list.reduce((a,x)=>a+x.d.dueNow,0);
-  const rows=list.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
-    <span style="flex:1"><b>${x.s.name}</b><div style="font-size:10px;color:#6b6b6b">Finished work ${fmt(x.d.doneValue)} · received ${fmt(x.d.received)}${x.d.remaining>x.d.dueNow?' · full contract balance '+fmt(x.d.remaining):''}</div></span>
-    <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:#A32D2D">${fmt(x.d.dueNow)}</b><button class="btn bs" style="font-size:10px" onclick="openDetail(${x.s.id})">Open</button></span>
+  const rows=list.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line2);font-size:12px">
+    <span style="flex:1"><b>${x.s.name}</b><div style="font-size:10px;color:var(--mut)">Finished work ${fmt(x.d.doneValue)} · received ${fmt(x.d.received)}${x.d.remaining>x.d.dueNow?' · full contract balance '+fmt(x.d.remaining):''}</div></span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:var(--dgr)">${fmt(x.d.dueNow)}</b><button class="btn bs" style="font-size:10px" onclick="openDetail(${x.s.id})">Open</button></span>
   </div>`).join('');
-  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Client receivables — <span style="color:#A32D2D">${fmt(total)}</span> due for finished work</span></div>
-    <div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">Completed works these clients have not fully paid for. Log income on the site when money arrives.</div>${rows}</div>`;
+  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Client receivables — <span style="color:var(--dgr)">${fmt(total)}</span> due for finished work</span></div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:6px">Completed works these clients have not fully paid for. Log income on the site when money arrives.</div>${rows}</div>`;
 }
 function siteCard(s){
   const st=siteStats(s);const isOwn=s.type==='own';
   const crew=D.roster.filter(r=>r.date===today()&&r.siteId===s.id).length;
   return `<div class="sc" onclick="openDetail(${s.id})">
-    <div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span><span style="display:inline-flex;gap:4px;align-items:center">${clientDue(s).dueNow>0?`<span class="badge" style="background:#FBEAEA;color:#A32D2D;font-size:9px">Due ${fmt(clientDue(s).dueNow)}</span>`:''}${getBadge(s)}</span></div>
-    <div style="font-size:11px;color:#6b6b6b;margin-bottom:5px">${s.loc}${crew?' · '+crew+' worker'+(crew>1?'s':'')+' today':''}</div>
+    <div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span><span style="display:inline-flex;gap:4px;align-items:center">${clientDue(s).dueNow>0?`<span class="badge" style="background:var(--dgr-bg);color:var(--dgr);font-size:9px">Due ${fmt(clientDue(s).dueNow)}</span>`:''}${getBadge(s)}</span></div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:5px">${s.loc}${crew?' · '+crew+' worker'+(crew>1?'s':'')+' today':''}</div>
     <div class="sm">
       ${isOwn?`
         <div class="smi"><div class="smil">Labour cost</div><div class="smiv">${fmt(st.lCost)}</div></div>
@@ -1328,25 +1353,25 @@ function renderRoster(){
   Object.entries(bySite).forEach(([sid,rows])=>{
     const site=D.sites.find(s=>s.id===parseInt(sid));if(!site)return;
     const[bg,tc]=avc(site.id);const siteCost=rows.reduce((a,r)=>a+(r.cost||0),0);
-    html+=`<div class="rd"><div class="rdh"><span>${site.name}</span><span style="font-size:11px;color:#6b6b6b">${rows.length} worker${rows.length>1?'s':''} · ${fmt(siteCost)}</span></div>`;
+    html+=`<div class="rd"><div class="rdh"><span>${site.name}</span><span style="font-size:11px;color:var(--mut)">${rows.length} worker${rows.length>1?'s':''} · ${fmt(siteCost)}</span></div>`;
     rows.forEach(r=>{
       const emp=D.employees.find(e=>e.id===r.empId);if(!emp)return;
       const working=isWorkingDay(date,emp.empType);
       html+=`<div class="rr"><div class="av" style="background:${bg};color:${tc}">${ini(emp.name)}</div>
         <div style="flex:1"><div style="font-weight:500;font-size:12px">${emp.name}${emp.empType==='foreign'?' <span class="badge bfor" style="font-size:9px">Foreign</span>':''}</div>
-        <div style="font-size:10px;color:#6b6b6b">${emp.role}${isMgr(emp)?' · <span style="color:#185FA5">Manager · auto</span>':''}${!working?' · <span style="color:#A32D2D">Non-working day</span>':' · '+fmt(r.cost)+' labour cost'}</div></div>
+        <div style="font-size:10px;color:var(--mut)">${emp.role}${isMgr(emp)?' · <span style="color:var(--inf)">Manager · auto</span>':''}${!working?' · <span style="color:var(--dgr)">Non-working day</span>':' · '+fmt(r.cost)+' labour cost'}</div></div>
         ${isMgr(emp)?'':`<button class="btn bs bd" onclick="removeRoster('${date}',${emp.id},${r.siteId})">✕</button>`}
       </div>`;
     });
     html+=`</div>`;
   });
   if(unassigned.length){
-    html+=`<div class="rd"><div class="rdh" style="background:transparent"><span style="color:#6b6b6b">Not allocated</span></div>`;
+    html+=`<div class="rd"><div class="rdh" style="background:transparent"><span style="color:var(--mut)">Not allocated</span></div>`;
     unassigned.forEach(emp=>{
       const[bg,tc]=avc(emp.id);
       html+=`<div class="rr"><div class="av" style="background:${bg};color:${tc}">${ini(emp.name)}</div>
         <div style="flex:1"><div style="font-size:12px">${emp.name}${emp.empType==='foreign'?' <span class="badge bfor" style="font-size:9px">Foreign</span>':''}</div>
-        <div style="font-size:10px;color:#6b6b6b">${emp.role}</div></div>
+        <div style="font-size:10px;color:var(--mut)">${emp.role}</div></div>
         <button class="btn bs" onclick="quickAlloc(${emp.id},'${date}')">+Allocate</button>
       </div>`;
     });
@@ -1448,7 +1473,7 @@ function popCrewChecklist(){
   const el=document.getElementById('ra-crew');if(!el)return;
   const date=document.getElementById('ra-date').value;
   const siteId=parseInt(document.getElementById('ra-site').value);
-  if(!date||!siteId){el.innerHTML='<div style="font-size:11px;color:#6b6b6b;padding:8px 0">Choose a date and worksite first.</div>';updateCrewSummary();return;}
+  if(!date||!siteId){el.innerHTML='<div style="font-size:11px;color:var(--mut);padding:8px 0">Choose a date and worksite first.</div>';updateCrewSummary();return;}
   el.innerHTML=D.employees.map(e=>{
     const entries=D.roster.filter(r=>r.date===date&&r.empId===e.id);
     const onThis=entries.some(r=>r.siteId===siteId);
@@ -1459,14 +1484,14 @@ function popCrewChecklist(){
     const checked=onThis||(!mgr&&!entries.length&&!leave&&window._preTickEmp===e.id);
     const dis=leave||mgr;
     let hint='';
-    if(mgr)hint=` · <span style="color:#185FA5">Manager — allocated automatically to every site with crew</span>`;
-    else if(otherSites.length)hint=` · <span style="color:#854F0B">also at ${otherSites.join(', ')} — day rate splits across sites</span>`;
-    else if(leave)hint=` · <span style="color:#A32D2D">On leave (${LEAVE_LABELS[getLeaveType(e.id,date)]||'leave'})</span>`;
-    else if(!working)hint=' · <span style="color:#854F0B">Non-working day — no cost</span>';
-    return`<label style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f4f4f2;${dis?'opacity:0.55;cursor:default':'cursor:pointer'}">
+    if(mgr)hint=` · <span style="color:var(--inf)">Manager — allocated automatically to every site with crew</span>`;
+    else if(otherSites.length)hint=` · <span style="color:var(--amb)">also at ${otherSites.join(', ')} — day rate splits across sites</span>`;
+    else if(leave)hint=` · <span style="color:var(--dgr)">On leave (${LEAVE_LABELS[getLeaveType(e.id,date)]||'leave'})</span>`;
+    else if(!working)hint=' · <span style="color:var(--amb)">Non-working day — no cost</span>';
+    return`<label style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--bg3);${dis?'opacity:0.55;cursor:default':'cursor:pointer'}">
       <input type="checkbox" class="ra-emp-cb" value="${e.id}" ${checked?'checked':''} ${dis?'disabled':''} onchange="updateCrewSummary()" style="width:15px;height:15px">
-      <span style="flex:1;font-size:12px">${e.name}${e.empType==='foreign'?' <span class="badge bfor" style="font-size:9px">Foreign</span>':''}<div style="font-size:10px;color:#6b6b6b">${e.role||''}${hint}</div></span>
-      <span style="font-size:10px;color:#6b6b6b">${fmt(e.rate||0)}/day</span>
+      <span style="flex:1;font-size:12px">${e.name}${e.empType==='foreign'?' <span class="badge bfor" style="font-size:9px">Foreign</span>':''}<div style="font-size:10px;color:var(--mut)">${e.role||''}${hint}</div></span>
+      <span style="font-size:10px;color:var(--mut)">${fmt(e.rate||0)}/day</span>
     </label>`;
   }).join('');
   updateCrewSummary();
@@ -1528,7 +1553,7 @@ function renderSites(){
   else if(f==='own')sites=sites.filter(s=>s.type==='own');
   else if(f==='done')sites=sites.filter(s=>s.status==='done');
   else if(f==='unpaid')sites=sites.filter(s=>clientDue(s).dueNow>0);
-  document.getElementById('sites-list').innerHTML=sites.length?sites.map(s=>s.status==='scheduled'?`<div class="sc" onclick="openDetail(${s.id})"><div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span>${getBadge(s)}</div><div style="font-size:11px;color:#6b6b6b">${s.loc}${s.expectedStart?' · Expected: '+s.expectedStart:''}</div></div>`:siteCard(s)).join(''):'<div class="empty">No worksites here</div>';
+  document.getElementById('sites-list').innerHTML=sites.length?sites.map(s=>s.status==='scheduled'?`<div class="sc" onclick="openDetail(${s.id})"><div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span>${getBadge(s)}</div><div style="font-size:11px;color:var(--mut)">${s.loc}${s.expectedStart?' · Expected: '+s.expectedStart:''}</div></div>`:siteCard(s)).join(''):'<div class="empty">No worksites here</div>';
 }
 function onSiteType(){}
 function addSite(){
@@ -1566,22 +1591,22 @@ function renderDetailProfit(s){
   const totalQuote=works.reduce((a,w)=>a+w.price,0);
   const settleBtn=st.unsettledAmt>0
     ?`<button class="btn bs bam2" onclick="openSettle(${s.id})" style="margin-top:8px">Settle ${fmt(st.unsettledAmt)}</button>`
-    :(st.mCost>0?`<div style="font-size:10px;color:#0F6E56;margin-top:6px">✓ Warehouse materials settled</div>`:'');
+    :(st.mCost>0?`<div style="font-size:10px;color:var(--pri);margin-top:6px">✓ Warehouse materials settled</div>`:'');
 
   // Works section
   const wBadge=w=>w.status==='done'?'<span class="badge bd2" style="font-size:9px">Completed'+(w.doneDate?' '+w.doneDate:'')+'</span>'
     :w.status==='scheduled'?'<span class="badge bsc" style="font-size:9px">Scheduled</span>'
     :'<span class="badge ba" style="font-size:9px">In progress'+(w.startDate?' since '+w.startDate:'')+'</span>';
   const worksHtml=works.length
-    ?works.map(w=>`<div class="prof-row sub" style="padding:5px 0;border-bottom:1px solid #f0f0ee;align-items:center">
-        <span style="flex:1">${w.desc}${w.notes?'<span style="color:#6b6b6b;font-size:10px"> — '+w.notes+'</span>':''}<span style="font-size:10px;color:#6b6b6b;margin-left:6px">${normDate(w.date)}</span> ${wBadge(w)}</span>
+    ?works.map(w=>`<div class="prof-row sub" style="padding:5px 0;border-bottom:1px solid var(--line2);align-items:center">
+        <span style="flex:1">${w.desc}${w.notes?'<span style="color:var(--mut);font-size:10px"> — '+w.notes+'</span>':''}<span style="font-size:10px;color:var(--mut);margin-left:6px">${normDate(w.date)}</span> ${wBadge(w)}</span>
         <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-weight:500">${fmt(w.price)}</span>
-        ${(w.status||'active')==='scheduled'?`<button class="btn bs" style="font-size:9px;padding:2px 7px;color:#0F6E56" onclick="startWork('${w.id}')">▶Start</button>`:''}
-        ${(w.status||'active')==='active'?`<button class="btn bs" style="font-size:9px;padding:2px 7px;color:#0F6E56" onclick="doneWork('${w.id}')">✓Done</button>`:''}
+        ${(w.status||'active')==='scheduled'?`<button class="btn bs" style="font-size:9px;padding:2px 7px;color:var(--pri)" onclick="startWork('${w.id}')">▶Start</button>`:''}
+        ${(w.status||'active')==='active'?`<button class="btn bs" style="font-size:9px;padding:2px 7px;color:var(--pri)" onclick="doneWork('${w.id}')">✓Done</button>`:''}
         <button class="btn bs" style="font-size:9px;padding:2px 7px" onclick="openEditWork('${w.id}')">✎</button>
-        <button class="btn bs" style="font-size:9px;padding:2px 7px;color:#A32D2D" onclick="removeWork('${w.id}')">✕</button></span>
+        <button class="btn bs" style="font-size:9px;padding:2px 7px;color:var(--dgr)" onclick="removeWork('${w.id}')">✕</button></span>
       </div>`).join('')
-    :'<div style="font-size:11px;color:#6b6b6b;padding:6px 0">No works added yet — click Add work to start.</div>';
+    :'<div style="font-size:11px;color:var(--mut);padding:6px 0">No works added yet — click Add work to start.</div>';
 
   document.getElementById('d-profit-grid').innerHTML=`
     <div class="prof-box" style="grid-column:1/-1">
@@ -1591,11 +1616,11 @@ function renderDetailProfit(s){
       </div>
       ${worksHtml}
       ${works.length?`<div class="prof-total" style="margin-top:8px"><span>Total agreed</span><span>${fmt(totalQuote)}</span></div>`:''}
-      ${st.extrasBill>0?`<div class="prof-total" style="margin-top:2px;color:#6d5a12"><span>+ Billable extras (outside quote)</span><span>${fmt(st.extrasBill)}</span></div>`:''}
+      ${st.extrasBill>0?`<div class="prof-total" style="margin-top:2px;color:var(--amb-tx)"><span>+ Billable extras (outside quote)</span><span>${fmt(st.extrasBill)}</span></div>`:''}
     </div>
     <div class="prof-box">
       <div class="prof-label">Costs</div>
-      ${st.advanceIn>0?`<div class="prof-row sub" style="color:#854F0B"><span>Received — not yet split into labour/materials</span><span>${fmt(st.advanceIn)}</span></div>`:''}
+      ${st.advanceIn>0?`<div class="prof-row sub" style="color:var(--amb)"><span>Received — not yet split into labour/materials</span><span>${fmt(st.advanceIn)}</span></div>`:''}
       <div class="prof-row sub"><span>Labour (roster + manual)</span><span class="r">${fmt(st.lCost)}</span></div>
       <div class="prof-row sub"><span>Materials (stock + local)</span><span class="r">${fmt(st.totalMatCost)}</span></div>
       <div class="prof-total"><span>Total cost</span><span class="r">${fmt(st.totalCost)}</span></div>
@@ -1675,7 +1700,7 @@ function onSplitInput(){
   document.getElementById('sp-min').value=rem>=0?rem:0;
   const ok=lin>=0&&lin<=total;
   document.getElementById('sp-check').textContent=ok?`Labour ${fmt(lin)} + Materials ${fmt(rem)} = ${fmt(total)} ✓`:'Labour portion cannot exceed the total.';
-  document.getElementById('sp-check').style.color=ok?'#0F6E56':'#A32D2D';
+  document.getElementById('sp-check').style.color=ok?'var(--pri)':'var(--dgr)';
 }
 function saveSplitInc(){
   const siteId=parseInt(document.getElementById('sp-site').value);
@@ -1702,12 +1727,12 @@ function renderDetailExtPurchases(s){
   const owed=list.filter(p=>p.credit&&!p.paid).reduce((a,p)=>a+p.amount,0);
   const rows=list.map(p=>{
     const status=extPayBadge(p);
-    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
-      <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:#6b6b6b">${p.date}</div></span>
-      <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:#0F6E56" onclick="markVendorPaid(${s.id},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:#A32D2D" onclick="deleteExtPurchase(${s.id},${p.idx},'${p.vpId||''}')">✕</button></span>
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:12px">
+      <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:var(--mut)">${p.date}</div></span>
+      <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:var(--pri)" onclick="markVendorPaid(${s.id},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:var(--dgr)" onclick="deleteExtPurchase(${s.id},${p.idx},'${p.vpId||''}')">✕</button></span>
     </div>`;
   });
-  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases — ${fmt(total)}${owed>0?` · <span style="color:#A32D2D">${fmt(owed)} owed</span>`:''}</span></div>
+  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases — ${fmt(total)}${owed>0?` · <span style="color:var(--dgr)">${fmt(owed)} owed</span>`:''}</span></div>
     ${limitLog(rows,'siteext'+s.id,'rerenderDetailExt()',6)}</div>`;
 }
 function renderDetailSiteStock(s){
@@ -1715,8 +1740,8 @@ function renderDetailSiteStock(s){
   const el=document.getElementById('d-sitestock');
   if(!keys.length){el.innerHTML='<div class="empty" style="padding:14px">No materials on site</div>';return}
   el.innerHTML='<div class="dp" style="padding:8px 12px">'+keys.map(k=>{const mat=D.stocks[k];
-    if(!mat)return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px;color:#A32D2D">Unknown material</div><div style="font-size:10px;color:#6b6b6b">${ss[k]} on site — this material no longer exists in stock</div></div></div>`;
-    return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px">${mat.name}</div><div style="font-size:10px;color:#6b6b6b">${ss[k]} ${mat.unit}</div></div><button class="btn bs bg2" onclick="openReturn('${k}')">↩Return</button></div>`;
+    if(!mat)return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px;color:var(--dgr)">Unknown material</div><div style="font-size:10px;color:var(--mut)">${ss[k]} on site — this material no longer exists in stock</div></div></div>`;
+    return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px">${mat.name}</div><div style="font-size:10px;color:var(--mut)">${ss[k]} ${mat.unit}</div></div><button class="btn bs bg2" onclick="openReturn('${k}')">↩Return</button></div>`;
   }).join('')+'</div>';
 }
 function renderDetailLog(s){
@@ -1729,20 +1754,20 @@ function renderDetailLog(s){
     const canSplit=e.type==='income'&&(e.isAdvance||e.unsplit)&&((e.advance||0)+(e.amount||0))>0;
     return`
     <div class="li"><div class="ld">${e.date}</div><div class="lb"><span class="badge ${tb[e.type]||'bd2'}">${tl[e.type]||e.type}</span></div>
-    <div style="flex:1">${logDesc(e)}${e.billable?` <span class="badge" style="background:#FDF6E3;color:#6d5a12;font-size:9px">EXTRA — bill ${fmt(e.billAmount||0)}</span>`:''}${canSplit?` <button class="btn bs" style="font-size:10px;margin-left:6px" onclick="openSplitInc(${s.id},${realIdx})">✂ Split</button>`:''}</div></div>`;});
+    <div style="flex:1">${logDesc(e)}${e.billable?` <span class="badge" style="background:var(--amb-bg);color:var(--amb-tx);font-size:9px">EXTRA — bill ${fmt(e.billAmount||0)}</span>`:''}${canSplit?` <button class="btn bs" style="font-size:10px;margin-left:6px" onclick="openSplitInc(${s.id},${realIdx})">✂ Split</button>`:''}</div></div>`;});
   document.getElementById('d-log').innerHTML='<div class="dp">'+limitLog(rows,'sitelog'+s.id,'rerenderDetailLog()',15)+'</div>';
 }
 function logDesc(e){
   if(e.type==='income'){
-    if(e.isAdvance)return`<b>Advance payment: ${fmt(e.advance)}</b> <span style="font-size:10px;color:#854F0B">(not yet split)</span>`;
-    if(e.unsplit)return`<b>Payment received: ${fmt(e.amount||0)}</b>${e.workName?' — '+e.workName:''} <span style="font-size:10px;color:#854F0B">(not yet split)</span>`;
-    return`Labour: <b>${fmt(e.lIn)}</b> · Materials: <b>${fmt(e.mIn)}</b>${e.workName?` <span style="font-size:10px;color:#6b6b6b">— ${e.workName}</span>`:''}`;
+    if(e.isAdvance)return`<b>Advance payment: ${fmt(e.advance)}</b> <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
+    if(e.unsplit)return`<b>Payment received: ${fmt(e.amount||0)}</b>${e.workName?' — '+e.workName:''} <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
+    return`Labour: <b>${fmt(e.lIn)}</b> · Materials: <b>${fmt(e.mIn)}</b>${e.workName?` <span style="font-size:10px;color:var(--mut)">— ${e.workName}</span>`:''}`;
   }
   if(e.type==='labour')return`${fmt(e.cost)}${e.desc?' — '+e.desc:''}`;
   if(e.type==='roster-cost')return`${e.empName} — daily rate <b>${fmt(e.cost)}</b>`;
   if(e.type==='material')return`${e.matName?'<b>'+e.matName+'</b>: ':''} ${e.qty?e.qty+' '+e.unit+' from warehouse':''}${e.desc?e.desc:''}${e.cost?' · '+fmt(e.cost):''}`;
   if(e.type==='overtime')return`${e.empName} — <b>${e.hours}h</b> × ${fmt(e.rate)}/h = <b>${fmt(e.cost)}</b>${e.note?' — '+e.note:''}`;
-  if(e.type==='local-purchase')return`<b>${e.desc||'External purchase'}</b>${e.vendor?' — '+e.vendor:''} · ${fmt(e.amount||0)}${e.credit?(e.paid?' <span style="font-size:10px;color:#0F6E56;font-weight:600">PAID '+(e.paidDate||'')+'</span>':' <span style="font-size:10px;color:#A32D2D;font-weight:600">ON CREDIT</span>'):''}`;
+  if(e.type==='local-purchase')return`<b>${e.desc||'External purchase'}</b>${e.vendor?' — '+e.vendor:''} · ${fmt(e.amount||0)}${e.credit?(e.paid?' <span style="font-size:10px;color:var(--pri);font-weight:600">PAID '+(e.paidDate||'')+'</span>':' <span style="font-size:10px;color:var(--dgr);font-weight:600">ON CREDIT</span>'):''}`;
   if(e.type==='note')return e.text;
   if(e.type==='day-worker')return`<b>${e.name}</b> (day worker) — <b>${fmt(e.rate)}</b>${e.note?' · '+e.note:''}`;
   if(e.type==='return')return`Returned <b>${e.qty} ${e.unit}</b> of ${e.matName} to warehouse${e.cost?' · credit '+fmt(e.cost):''}`;
@@ -1755,7 +1780,7 @@ function renderDetailCrew(s){
   el.innerHTML='<div class="dp" style="padding:6px 10px">'+crew.map(r=>{
     const emp=D.employees.find(e=>e.id===r.empId);if(!emp)return'';const[bg,tc]=avc(s.id);
     return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0"><div class="av" style="background:${bg};color:${tc}">${ini(emp.name)}</div>
-      <div style="flex:1"><div style="font-size:12px;font-weight:500">${emp.name}</div><div style="font-size:10px;color:#6b6b6b">${emp.role}</div></div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:500">${emp.name}</div><div style="font-size:10px;color:var(--mut)">${emp.role}</div></div>
       <span class="pc">${fmt(emp.rate)}/day</span></div>`;
   }).join('')+'</div>';
 }
@@ -1847,7 +1872,7 @@ function updateMatAvail(){
   const mat=D.stocks[key];const qty=parseFloat(document.getElementById('log-mqty').value)||0;
   document.getElementById('log-munit').textContent='('+mat.unit+')';
   const el=document.getElementById('log-mavail');
-  el.style.color=qty>mat.wQty?'#A32D2D':'#6b6b6b';
+  el.style.color=qty>mat.wQty?'var(--dgr)':'var(--mut)';
   el.textContent=`Warehouse: ${mat.wQty} ${mat.unit}${qty>mat.wQty?' — not enough!':''}`;
   // Auto-price the issue at the material's sale price (still editable)
   const costEl=document.getElementById('log-mcost');
@@ -2086,11 +2111,11 @@ function openSalaryBatch(){
   const lastPaid={};
   (D.fees||[]).forEach(f=>{if(f.feeType==='salary'&&(!lastPaid[f.empId]||String(f.date)>String(lastPaid[f.empId])))lastPaid[f.empId]=f.date;});
   document.getElementById('sal-list').innerHTML=D.employees.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(e=>`
-    <label style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f4f4f2;cursor:pointer">
+    <label style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--bg3);cursor:pointer">
       <input type="checkbox" class="sal-cb" value="${e.id}" onchange="updateSalarySummary()" style="width:15px;height:15px">
       <span style="flex:1;font-size:12px">${e.name}${e.empType==='foreign'?' <span class="badge bfor" style="font-size:9px">Foreign</span>':''}
-        <div style="font-size:10px;color:#6b6b6b">${lastPaid[e.id]?'Last paid: '+lastPaid[e.id]:'No salary logged yet'}</div></span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="font-size:10px;color:#6b6b6b">MVR</span>
+        <div style="font-size:10px;color:var(--mut)">${lastPaid[e.id]?'Last paid: '+lastPaid[e.id]:'No salary logged yet'}</div></span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="font-size:10px;color:var(--mut)">MVR</span>
       <input id="sal-amt-${e.id}" type="number" value="${e.monthly||''}" placeholder="0" oninput="updateSalarySummary()" style="width:92px;padding:4px 8px;font-size:12px"></span>
     </label>`).join('');
   updateSalarySummary();
@@ -2107,7 +2132,7 @@ function updateSalarySummary(){
     const h=document.getElementById('salpay-holder');
     const name=h&&h.value&&h.value!=='__new__'?h.value:'Me';
     const bal=(cashBankBalances().holders[name])||0;
-    hint=` · ${name} currently holds ${fmt(bal)}${total>bal?' <span style="color:#A32D2D">— not enough cash!</span>':''}`;
+    hint=` · ${name} currently holds ${fmt(bal)}${total>bal?' <span style="color:var(--dgr)">— not enough cash!</span>':''}`;
   }
   el.innerHTML=boxes.length?`${boxes.length} selected · total ${fmt(total)}${hint}`:'';
 }
@@ -2133,6 +2158,18 @@ function saveSalaryBatch(){
 }
 var _bizInfo={name:'',addr:'',phone:''};
 var _docCtx={type:'site',id:null};
+function applyTheme(name){
+  name=name||'raiyvina';
+  if(name==='raiyvina')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',name);
+  const sel=document.getElementById('theme-sel');if(sel)sel.value=name;
+}
+function setTheme(name){
+  applyTheme(name);
+  try{localStorage.setItem('bt_theme',name);}catch(e){}
+  D.company=D.company||{};D.company.theme=name;
+  GS.save('settings');
+}
 function toggleMenu(force){
   const b=document.body;
   if(force===false)b.classList.remove('menu-open');
@@ -2141,6 +2178,8 @@ function toggleMenu(force){
 }
 function applyBranding(){
   const c=D.company||{};
+  try{var lt=localStorage.getItem('bt_theme');if(lt)applyTheme(lt);else if(c.theme)applyTheme(c.theme);}
+  catch(e){if(c.theme)applyTheme(c.theme);}
   const name=(c.name||'RAIYVINA').toUpperCase();
   const n1=document.getElementById('sb-brand-name');if(n1)n1.textContent=name;
   const n2=document.getElementById('tb-brand-name');if(n2)n2.textContent=name;
@@ -2241,11 +2280,11 @@ function onDocKind(){
       :'Please settle this invoice within 14 days. Thank you for your business.';
     document.getElementById('dg-items').innerHTML=(sale.items||[]).map((it,i)=>{
       const nm=it.name||it.matName||'Item';
-      return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f4f4f2;font-size:12px;cursor:pointer">
+      return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg3);font-size:12px;cursor:pointer">
         <input type="checkbox" class="dg-cb" value="${i}" checked style="width:14px;height:14px">
-        <span style="flex:1">${nm}<span style="font-size:10px;color:#6b6b6b"> — ${it.qty} ${it.unit||''} × ${fmt(it.price||0)}</span></span>
+        <span style="flex:1">${nm}<span style="font-size:10px;color:var(--mut)"> — ${it.qty} ${it.unit||''} × ${fmt(it.price||0)}</span></span>
         <span style="font-weight:500">${fmt((it.qty||0)*(it.price||0))}</span></label>`;
-    }).join('')||'<div style="font-size:11px;color:#6b6b6b;padding:6px 0">This sale has no items.</div>';
+    }).join('')||'<div style="font-size:11px;color:var(--mut);padding:6px 0">This sale has no items.</div>';
     return;
   }
   const s=D.sites.find(x=>x.id===D.activeSiteId);if(!s)return;
@@ -2262,19 +2301,19 @@ function onDocKind(){
     const lw=x.e.billWorkId?(s.works||[]).find(w=>String(w.id)===String(x.e.billWorkId)):null;
     const chargeable=s.status==='done'||!x.e.billWorkId||(lw&&(lw.status||'active')==='done');
     const pre=kind==='invoice'&&chargeable;
-    return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f4f4f2;font-size:12px;cursor:pointer">
+    return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg3);font-size:12px;cursor:pointer">
       <input type="checkbox" class="dg-cb" value="x${x.i}" ${pre?'checked':''} style="width:14px;height:14px">
-      <span style="flex:1">${x.e.desc||x.e.matName||'Extra material'} <span class="badge" style="background:#FDF6E3;color:#6d5a12;font-size:9px">EXTRA</span>${lw?`<div style="font-size:10px;color:#6b6b6b">for ${lw.desc}</div>`:''}</span>
+      <span style="flex:1">${x.e.desc||x.e.matName||'Extra material'} <span class="badge" style="background:var(--amb-bg);color:var(--amb-tx);font-size:9px">EXTRA</span>${lw?`<div style="font-size:10px;color:var(--mut)">for ${lw.desc}</div>`:''}</span>
       <span style="font-weight:500">${fmt(x.e.billAmount||0)}</span></label>`;
   }).join('');
   document.getElementById('dg-items').innerHTML=((s.works||[]).map(w=>{
     const done=(w.status||'active')==='done';
     const pre=kind==='invoice'?done:!done;
-    return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f4f4f2;font-size:12px;cursor:pointer">
+    return`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg3);font-size:12px;cursor:pointer">
       <input type="checkbox" class="dg-cb" value="${w.id}" ${pre?'checked':''} style="width:14px;height:14px">
       <span style="flex:1">${w.desc}${done?' <span class="badge bd2" style="font-size:9px">Completed</span>':''}</span>
       <span style="font-weight:500">${fmt(w.price||0)}</span></label>`;
-  }).join('')+extraRows)||'<div style="font-size:11px;color:#6b6b6b;padding:6px 0">No works on this site yet — use the extra item below.</div>';
+  }).join('')+extraRows)||'<div style="font-size:11px;color:var(--mut);padding:6px 0">No works on this site yet — use the extra item below.</div>';
 }
 // Pure builder — matches the RAIYVINA template: heavy masthead with a
 // black number bar, company + reg top-right, ISSUED TO with issue/due
@@ -2445,11 +2484,11 @@ function renderEmps(){
     return`<tr>
       <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${bg};color:${tc}">${ini(e.name)}</div><b>${e.name}</b></div></td>
       <td>${e.role}</td><td>${e.empType==='foreign'?'<span class="badge bfor">Foreign</span>':'<span class="badge bd2">Local</span>'}</td>
-      <td>${fmt(e.monthly)}<span style="font-size:10px;color:#6b6b6b">/mo</span></td>
+      <td>${fmt(e.monthly)}<span style="font-size:10px;color:var(--mut)">/mo</span></td>
       <td><span class="pc">${fmt(e.rate)}/day</span></td>
       <td>${e.empType==='foreign'?fmt(FOOD_MONTHLY)+'/mo':'—'}</td>
-      <td>${site?`<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-size:12px" onclick="openDetail(${site.id})">${site.name}</span>`:'<span style="color:#6b6b6b">—</span>'}</td>
-      <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="openEditEmp(${e.id})" style="color:#185FA5;font-size:11px">💲 Salary</button><button class="btn bs" onclick="openLeaveModal(${e.id})" style="color:#534AB7;font-size:11px">🏖 Leave</button><button class="btn bs bd2c" onclick="removeEmp(${e.id})" style="font-size:11px">✕ Delete</button></div></td>
+      <td>${site?`<span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-size:12px" onclick="openDetail(${site.id})">${site.name}</span>`:'<span style="color:var(--mut)">—</span>'}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn bs" onclick="openEditEmp(${e.id})" style="color:var(--inf);font-size:11px">💲 Salary</button><button class="btn bs" onclick="openLeaveModal(${e.id})" style="color:#534AB7;font-size:11px">🏖 Leave</button><button class="btn bs bd2c" onclick="removeEmp(${e.id})" style="font-size:11px">✕ Delete</button></div></td>
     </tr>`;
   }).join('');
   const fgn=D.employees.filter(e=>e.empType==='foreign');const loc=D.employees.filter(e=>e.empType==='local');
@@ -2457,9 +2496,9 @@ function renderEmps(){
   const totFood=fgn.reduce((a,e)=>a+((e.benefits&&e.benefits.food===false)?0:FOOD_MONTHLY),0);
   document.getElementById('payroll-summary').innerHTML=`<div class="cs">
     <div class="sbl">Local (${loc.length})</div>
-    ${loc.map(e=>`<div class="cr"><span>${e.name} <span style="font-size:10px;color:#6b6b6b">${e.role}</span></span><span>${fmt(e.monthly)}</span></div>`).join('')}
+    ${loc.map(e=>`<div class="cr"><span>${e.name} <span style="font-size:10px;color:var(--mut)">${e.role}</span></span><span>${fmt(e.monthly)}</span></div>`).join('')}
     <div class="sbl" style="margin-top:10px;padding-top:8px">Foreign (${fgn.length})</div>
-    ${fgn.map(e=>`<div class="cr"><span>${e.name} <span style="font-size:10px;color:#6b6b6b">${e.role}</span></span><span>${fmt(e.monthly+FOOD_MONTHLY)}</span></div>`).join('')}
+    ${fgn.map(e=>`<div class="cr"><span>${e.name} <span style="font-size:10px;color:var(--mut)">${e.role}</span></span><span>${fmt(e.monthly+FOOD_MONTHLY)}</span></div>`).join('')}
     <div class="cr"><span>Total monthly incl. food allowance</span><span class="r">${fmt(totSalary+totFood)}</span></div>
   </div>`;
   document.getElementById('foreign-costs').innerHTML=(()=>{
@@ -2479,12 +2518,12 @@ function renderEmps(){
     <div class="cr sub"><span>Insurance (${benIns.length}/${fgn.length} responsible)</span><span>${fmt(insYr)}/yr</span></div>
     <div class="cr sub"><span>Return tickets (${benTicket.length}/${fgn.length} responsible)</span><span>As paid</span></div>
     <div class="cr"><span>Annual obligations (excl. tickets)</span><span class="r">${fmt(annualObl)}/yr</span></div>
-    <div style="margin-top:10px;padding-top:8px;border-top:1px solid #e8e8e4">
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">
       ${fgn.map(e=>{
         const b=e.benefits||{food:true,visa:true,quota:true,insurance:true,ticket:true};
         const r=empRates(e);
         const tags=[b.food!==false?'Food':'',b.visa!==false?'Visa '+r.visa+'/mo':'',b.quota!==false?'Quota '+r.quota+'/yr':'',b.insurance!==false?'Ins '+r.ins+'/yr':'',b.ticket!==false?'Ticket':''].filter(Boolean);
-        return`<div class="cr sub"><span>${e.name}</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#6b6b6b">${tags.join(' · ')||'No benefits'} <button class="btn bs" style="font-size:10px;padding:2px 8px" onclick="openBenFees(${e.id})">✎ Edit</button></span></div>`;
+        return`<div class="cr sub"><span>${e.name}</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--mut)">${tags.join(' · ')||'No benefits'} <button class="btn bs" style="font-size:10px;padding:2px 8px" onclick="openBenFees(${e.id})">✎ Edit</button></span></div>`;
       }).join('')}
     </div>
   </div>`;
@@ -2493,7 +2532,7 @@ function renderEmps(){
   document.getElementById('fee-log').innerHTML=D.fees.length?'<div class="cs">'+limitLog(D.fees.slice().reverse().map(f=>{
     const emp=D.employees.find(e=>e.id===f.empId);
     const mtag=f.method?` · ${f.method==='cash'?'cash'+(f.holder&&f.holder!=='Me'?' ('+f.holder+')':''):'bank'}`:'';
-    return`<div class="cr"><span>${emp?emp.name:'?'} · ${feeLabels[f.feeType]||f.feeType}${f.note?' — '+f.note:''}<span style="font-size:10px;color:#6b6b6b">${mtag}</span></span><span class="r">${fmt(f.amount)} <span style="font-size:10px;color:#6b6b6b">${f.date}</span></span></div>`;
+    return`<div class="cr"><span>${emp?emp.name:'?'} · ${feeLabels[f.feeType]||f.feeType}${f.note?' — '+f.note:''}<span style="font-size:10px;color:var(--mut)">${mtag}</span></span><span class="r">${fmt(f.amount)} <span style="font-size:10px;color:var(--mut)">${f.date}</span></span></div>`;
   }),'feelog','renderEmps()',10)+'</div>':'<div class="empty">No payments logged yet</div>';
   renderLeaveLog();
 }
@@ -2528,19 +2567,19 @@ function renderStocks(){
     const lc=(v.wholesale||0)+(v.boatCost||0)+(v.whCost||0);
     return`<tr>
       <td><b>${v.name}</b></td>
-      <td style="color:#6b6b6b">${v.unit}</td>
+      <td style="color:var(--mut)">${v.unit}</td>
       <td>
         <div style="display:flex;align-items:center;gap:5px">
-          <span>${v.salePrice?fmt(v.salePrice)+'/'+v.unit:'<span style="color:#6b6b6b">—</span>'}</span>
+          <span>${v.salePrice?fmt(v.salePrice)+'/'+v.unit:'<span style="color:var(--mut)">—</span>'}</span>
           <button class="btn bs" onclick="openSetPrice('${k}')" style="font-size:10px;padding:2px 7px">✎</button>
         </div>
       </td>
       <td>
-        ${lc?`<div style="font-size:11px;font-weight:500">${fmt(lc)}/${v.unit}</div><div style="font-size:9px;color:#6b6b6b">W:${fmt(v.wholesale||0)} B:${fmt(v.boatCost||0)} H:${fmt(v.whCost||0)}</div>`:'<span style="color:#6b6b6b">—</span>'}
+        ${lc?`<div style="font-size:11px;font-weight:500">${fmt(lc)}/${v.unit}</div><div style="font-size:9px;color:var(--mut)">W:${fmt(v.wholesale||0)} B:${fmt(v.boatCost||0)} H:${fmt(v.whCost||0)}</div>`:'<span style="color:var(--mut)">—</span>'}
         <button class="btn bs" onclick="openEditLanded('${k}')" style="font-size:10px;padding:2px 7px;margin-top:3px">✎ Edit</button>
       </td>
-      <td style="font-weight:500">${v.wQty}</td><td style="color:#6b6b6b">${onSite>0?onSite:'—'}</td><td>${total}</td><td>${v.alert}</td>
-      <td style="min-width:90px"><div style="display:flex;align-items:center;gap:6px"><div class="sbar"><div class="sf ${low?'low':''}" style="width:${pct}%"></div></div><span style="font-size:10px;color:#6b6b6b">${pct}%</span></div></td>
+      <td style="font-weight:500">${v.wQty}</td><td style="color:var(--mut)">${onSite>0?onSite:'—'}</td><td>${total}</td><td>${v.alert}</td>
+      <td style="min-width:90px"><div style="display:flex;align-items:center;gap:6px"><div class="sbar"><div class="sf ${low?'low':''}" style="width:${pct}%"></div></div><span style="font-size:10px;color:var(--mut)">${pct}%</span></div></td>
       <td><span class="badge ${low?'blow':'bok'}">${low?'Low':'OK'}</span></td>
       <td><button class="btn bs bd" onclick="if(confirm('Remove ${v.name}?')){delete D.stocks['${k}'];GS.save('stocks');renderStocks()}">✕</button></td>
     </tr>`;
@@ -2634,11 +2673,11 @@ function renderSaleItemsForm(){
   list.innerHTML=window._saleItems.map((item,idx)=>{
     const matOptions=Object.entries(D.stocks).map(([k,v])=>`<option value="${k}"${k===item.matKey?' selected':''}>${v.name} (${v.unit})</option>`).join('');
     return`<div class="sale-item-row" id="sif-${item.id}">
-      <select style="flex:2;padding:5px 7px;border:0.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" onchange="onSaleItemMat(${item.id},this.value)">${matOptions}</select>
-      <input type="number" placeholder="Qty" value="${item.qty}" style="width:60px;padding:5px 7px;border:0.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" oninput="onSaleItemQty(${item.id},this.value)">
-      <span style="font-size:11px;color:#6b6b6b">@</span>
-      <input type="number" placeholder="Price/unit" value="${item.price||''}" style="width:80px;padding:5px 7px;border:0.5px solid #d4d4d0;border-radius:7px;background:#ffffff;color:#1a1a1a;font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" oninput="onSaleItemPrice(${item.id},this.value)">
-      <span style="font-size:11px;min-width:70px;color:#6b6b6b" id="si-sub-${item.id}">${fmt(item.qty*item.price)}</span>
+      <select style="flex:2;padding:5px 7px;border:0.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" onchange="onSaleItemMat(${item.id},this.value)">${matOptions}</select>
+      <input type="number" placeholder="Qty" value="${item.qty}" style="width:60px;padding:5px 7px;border:0.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" oninput="onSaleItemQty(${item.id},this.value)">
+      <span style="font-size:11px;color:var(--mut)">@</span>
+      <input type="number" placeholder="Price/unit" value="${item.price||''}" style="width:80px;padding:5px 7px;border:0.5px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx);font-size:12px;font-family:Inter, system-ui, -apple-system, sans-serif" oninput="onSaleItemPrice(${item.id},this.value)">
+      <span style="font-size:11px;min-width:70px;color:var(--mut)" id="si-sub-${item.id}">${fmt(item.qty*item.price)}</span>
       ${window._saleItems.length>1?`<button class="btn bs bd" onclick="removeSaleItem(${item.id})">✕</button>`:''}
     </div>`;
   }).join('');
@@ -2707,17 +2746,17 @@ function renderSales(){
     return`<div class="sale-card">
       <div class="sale-card-header">
         <div><span style="font-weight:500;font-size:13px">${s.customer}</span> ${statusBadge}</div>
-        <div style="font-size:11px;color:#6b6b6b">${s.date}</div>
+        <div style="font-size:11px;color:var(--mut)">${s.date}</div>
       </div>
       <div class="sale-items">${s.items.map(i=>`${i.qty} ${i.unit} ${i.name||i.matName||'?'} @ ${fmt(i.price)}`).join(' · ')}</div>
-      ${s.note?`<div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">${s.note}</div>`:''}
+      ${s.note?`<div style="font-size:11px;color:var(--mut);margin-bottom:6px">${s.note}</div>`:''}
       <div class="sale-footer">
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
             <div class="progress-bar-wrap" style="max-width:120px"><div class="progress-bar" style="width:${pct}%"></div></div>
-            <span style="font-size:10px;color:#6b6b6b">${fmt(paid)} of ${fmt(tot)}</span>
+            <span style="font-size:10px;color:var(--mut)">${fmt(paid)} of ${fmt(tot)}</span>
           </div>
-          ${out>0?`<span style="font-size:11px;color:#A32D2D;font-weight:500">Outstanding: ${fmt(out)}</span>`:'<span style="font-size:11px;color:#0F6E56">Fully paid</span>'}
+          ${out>0?`<span style="font-size:11px;color:var(--dgr);font-weight:500">Outstanding: ${fmt(out)}</span>`:'<span style="font-size:11px;color:var(--pri)">Fully paid</span>'}
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn bs" onclick="openSaleDoc(${s.id})">📄 Doc</button>
@@ -2725,7 +2764,7 @@ function renderSales(){
           <button class="btn bs bd" onclick="deleteSale(${s.id})">✕</button>
         </div>
       </div>
-      ${s.payments.length?`<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid #e8e8e4">${s.payments.map((p,pidx)=>`<div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6b6b6b;background:#f7f7f5;border-radius:6px;padding:3px 8px;margin:2px 4px 2px 0">${p.date}: ${fmt(p.amount)}${p.note?' ('+p.note+')':''}<button onclick="deleteSalePayment(${s.id},${pidx})" style="border:none;background:none;color:#A32D2D;cursor:pointer;font-size:11px;padding:0 2px" title="Delete this payment">✕</button></div>`).join('')}</div>`:''}
+      ${s.payments.length?`<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--line)">${s.payments.map((p,pidx)=>`<div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--mut);background:var(--bg2);border-radius:6px;padding:3px 8px;margin:2px 4px 2px 0">${p.date}: ${fmt(p.amount)}${p.note?' ('+p.note+')':''}<button onclick="deleteSalePayment(${s.id},${pidx})" style="border:none;background:none;color:var(--dgr);cursor:pointer;font-size:11px;padding:0 2px" title="Delete this payment">✕</button></div>`).join('')}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -2869,22 +2908,22 @@ function renderMachinery(){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px">
           <div>
             <div style="font-weight:600;font-size:13px">${m.name} ${statusBadge[m.status]||''}</div>
-            <div style="font-size:11px;color:#6b6b6b;margin-top:2px">${m.date}${m.supplier?' · '+m.supplier:''}</div>
+            <div style="font-size:11px;color:var(--mut);margin-top:2px">${m.date}${m.supplier?' · '+m.supplier:''}</div>
           </div>
           <div style="text-align:right">
             <div style="font-weight:500;font-size:13px">${fmt(m.cost)}</div>
-            ${m.status==='sold'?`<div style="font-size:11px;color:#0F6E56">Sold: ${fmt(m.salePrice)} ${m.saleDate?'on '+m.saleDate:''}${m.soldTo?' to '+m.soldTo:''}</div>`:''}
-            ${(m.status==='retired'||m.status==='broken')?'<div style="font-size:11px;color:#6b6b6b">Written off</div>':''}
+            ${m.status==='sold'?`<div style="font-size:11px;color:var(--pri)">Sold: ${fmt(m.salePrice)} ${m.saleDate?'on '+m.saleDate:''}${m.soldTo?' to '+m.soldTo:''}</div>`:''}
+            ${(m.status==='retired'||m.status==='broken')?'<div style="font-size:11px;color:var(--mut)">Written off</div>':''}
           </div>
         </div>
-        ${m.notes?`<div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">${m.notes}</div>`:''}
-        ${m.statusNotes?`<div style="font-size:11px;color:#6b6b6b;font-style:italic">${m.statusNotes}</div>`:''}
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0ee;display:flex;gap:6px;justify-content:flex-end">
+        ${m.notes?`<div style="font-size:11px;color:var(--mut);margin-bottom:6px">${m.notes}</div>`:''}
+        ${m.statusNotes?`<div style="font-size:11px;color:var(--mut);font-style:italic">${m.statusNotes}</div>`:''}
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line2);display:flex;gap:6px;justify-content:flex-end">
           <button class="btn bs" onclick="openMachStatus(${m.id})">✎Update status</button>
           <button class="btn bs bd2c" onclick="if(confirm('Delete this machinery record?')){D.machinery=D.machinery.filter(x=>x.id!==${m.id});GS.save('machinery');renderMachinery()}">✕</button>
         </div>
       </div>`).join('')
-    :'<div style="text-align:center;padding:32px;color:#6b6b6b">No machinery recorded yet. Click Add machinery to start.</div>';
+    :'<div style="text-align:center;padding:32px;color:var(--mut)">No machinery recorded yet. Click Add machinery to start.</div>';
 }
 
 function renderFinance(){
@@ -2924,7 +2963,7 @@ function renderFinance(){
     <div class="cr"><span>Outstanding</span><span class="am">${fmt(totalSalesOut)}</span></div>
   </div>`;
   document.getElementById('fin-payroll').innerHTML=`<div class="cs">
-    ${D.employees.map(e=>`<div class="cr sub"><span>${e.name} <span style="font-size:10px;color:#6b6b6b">${e.role} · ${e.empType==='foreign'?'Foreign':'Local'}</span></span><span>${fmt(e.monthly+(e.empType==='foreign'?FOOD_MONTHLY:0))}</span></div>`).join('')}
+    ${D.employees.map(e=>`<div class="cr sub"><span>${e.name} <span style="font-size:10px;color:var(--mut)">${e.role} · ${e.empType==='foreign'?'Foreign':'Local'}</span></span><span>${fmt(e.monthly+(e.empType==='foreign'?FOOD_MONTHLY:0))}</span></div>`).join('')}
     <div class="cr"><span>Total monthly</span><span class="r">${fmt(totalPayroll)}</span></div>
   </div>`;
   const feesPaid=D.fees.reduce((a,f)=>a+f.amount,0);
@@ -3093,16 +3132,16 @@ function deleteCashOp(id){
 function renderFinCash(){
   const el=document.getElementById('fin-cash');if(!el)return;
   const b=cashBankBalances();
-  const holderRows=Object.keys(b.holders).sort().map(h=>`<div class="cr sub"><span>💵 ${h}</span><span style="font-weight:600;${b.holders[h]<0?'color:#A32D2D':''}">${fmt(b.holders[h])}</span></div>`).join('');
+  const holderRows=Object.keys(b.holders).sort().map(h=>`<div class="cr sub"><span>💵 ${h}</span><span style="font-weight:600;${b.holders[h]<0?'color:var(--dgr)':''}">${fmt(b.holders[h])}</span></div>`).join('');
   const kinds={withdraw:'Withdrew',deposit:'Deposited',move:'Moved',adjust:'Adjusted'};
   const flowRows=(D.cashflow||[]).slice().sort((a,b2)=>String(b2.date).localeCompare(String(a.date))).map(c=>{
     const desc=c.kind==='adjust'?(c.target==='__bank__'?'bank balance':(c.target||'Me')):c.kind==='withdraw'?`bank → ${c.toHolder}`:c.kind==='deposit'?`${c.fromHolder} → bank`:`${c.fromHolder} → ${c.toHolder}`;
-    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0f0ee;font-size:11px;color:#6b6b6b">
-      <span>${c.date} · ${kinds[c.kind]||c.kind} <b style="color:#1a1a1a">${fmt(c.amount)}</b> (${desc})${c.note?' — '+c.note:''}</span>
-      <button onclick="deleteCashOp(${c.id})" style="border:none;background:none;color:#A32D2D;cursor:pointer;font-size:12px">✕</button>
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line2);font-size:11px;color:var(--mut)">
+      <span>${c.date} · ${kinds[c.kind]||c.kind} <b style="color:var(--tx)">${fmt(c.amount)}</b> (${desc})${c.note?' — '+c.note:''}</span>
+      <button onclick="deleteCashOp(${c.id})" style="border:none;background:none;color:var(--dgr);cursor:pointer;font-size:12px">✕</button>
     </div>`;
   });
-  const unc=(b.unclassifiedIn||b.unclassifiedOut)?`<div style="font-size:10px;color:#854F0B;margin-top:6px">⚠ ${fmt(b.unclassifiedIn)} received / ${fmt(b.unclassifiedOut)} paid in older records without a payment method — not counted above.</div>`:'';
+  const unc=(b.unclassifiedIn||b.unclassifiedOut)?`<div style="font-size:10px;color:var(--amb);margin-top:6px">⚠ ${fmt(b.unclassifiedIn)} received / ${fmt(b.unclassifiedOut)} paid in older records without a payment method — not counted above.</div>`:'';
   el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Cash &amp; bank</span>
       <div style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn bs" onclick="openCashOp('withdraw')">🏧 Withdraw</button>
@@ -3111,11 +3150,11 @@ function renderFinCash(){
         <button class="btn bs" onclick="openCashOp('adjust')">✎ Opening balance</button>
       </div></div>
     <div class="cs">
-      <div class="cr"><span>🏦 Bank account should have</span><span class="r" style="${b.bank<0?'color:#A32D2D':''}">${fmt(b.bank)}</span></div>
+      <div class="cr"><span>🏦 Bank account should have</span><span class="r" style="${b.bank<0?'color:var(--dgr)':''}">${fmt(b.bank)}</span></div>
       ${holderRows||'<div class="cr sub"><span>💵 No cash movements recorded yet</span><span></span></div>'}
-      <div class="cr"><span>💵 Total cash on hand</span><span class="r" style="${b.cashTotal<0?'color:#A32D2D':''}">${fmt(b.cashTotal)}</span></div>
+      <div class="cr"><span>💵 Total cash on hand</span><span class="r" style="${b.cashTotal<0?'color:var(--dgr)':''}">${fmt(b.cashTotal)}</span></div>
     </div>${unc}
-    ${(D.cashflow||[]).length?`<div style="margin-top:10px;font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em">Cash movements</div>${limitLog(flowRows,'cashflow','renderFinCash()',6)}`:''}
+    ${(D.cashflow||[]).length?`<div style="margin-top:10px;font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em">Cash movements</div>${limitLog(flowRows,'cashflow','renderFinCash()',6)}`:''}
   </div>`;
 }
 // ── Vendor credits: unpaid external purchases, grouped per vendor ──
@@ -3168,15 +3207,15 @@ function renderFinVendors(){
   if(!groups.length){targets.forEach(el=>el.innerHTML='');return;}
   const grand=groups.reduce((a,g)=>a+g.items.reduce((x,p)=>x+p.amount,0),0);
   const html=`<div class="sec"><div class="sh"><span class="st">Vendor payables — you owe ${fmt(grand)}</span></div>
-    <div style="font-size:11px;color:#6b6b6b;margin-bottom:8px">External purchases taken on credit, per vendor. Mark each one paid when you settle with the vendor.</div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:8px">External purchases taken on credit, per vendor. Mark each one paid when you settle with the vendor.</div>
     ${groups.map(g=>{
       const tot=g.items.reduce((a,p)=>a+p.amount,0);
-      return`<div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:10px;padding:10px 14px;margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:6px"><span>${g.name}${g.vendorId!=null?` <span style="font-size:9px;color:#6b6b6b;font-weight:400">#V${g.vendorId}</span> <button class="btn bs" style="font-size:9px;padding:1px 6px" onclick="renameVendor(${g.vendorId})">✎</button>`:''}</span><span style="color:#A32D2D">${fmt(tot)}</span></div>
-        ${g.items.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#6b6b6b;padding:4px 0;border-top:1px solid #eceae5">
+      return`<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:6px"><span>${g.name}${g.vendorId!=null?` <span style="font-size:9px;color:var(--mut);font-weight:400">#V${g.vendorId}</span> <button class="btn bs" style="font-size:9px;padding:1px 6px" onclick="renameVendor(${g.vendorId})">✎</button>`:''}</span><span style="color:var(--dgr)">${fmt(tot)}</span></div>
+        ${g.items.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--mut);padding:4px 0;border-top:1px solid #eceae5">
           <span>${p.date} · ${p.siteName}${p.desc?' — '+p.desc:''}</span>
-          <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:#1a1a1a">${fmt(p.amount)}</b>
-          <button class="btn bs" style="font-size:10px;color:#0F6E56" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button></span>
+          <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:var(--tx)">${fmt(p.amount)}</b>
+          <button class="btn bs" style="font-size:10px;color:var(--pri)" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button></span>
         </div>`).join('')}
       </div>`;
     }).join('')}</div>`;
@@ -3564,9 +3603,9 @@ var GS = {
     if (!el) return;
     const map = {
       idle:   ['', '#888'],
-      saving: ['Saving…', '#854F0B'],
-      ok:     ['✓ Saved', '#0F6E56'],
-      error:  ['⚠ Not saved', '#A32D2D']
+      saving: ['Saving…', 'var(--amb)'],
+      ok:     ['✓ Saved', 'var(--pri)'],
+      error:  ['⚠ Not saved', 'var(--dgr)']
     };
     const [txt, col] = map[s] || ['', '#888'];
     el.textContent = txt;
@@ -3653,53 +3692,53 @@ async function gsBannerTest() {
     if (!GS._loadedOnce) {
       // This session never successfully loaded from Sheets — pushing now
       // could overwrite real data with what's on screen. Load first.
-      statusEl.textContent = 'Loading your data first…'; statusEl.style.color = '#854F0B';
+      statusEl.textContent = 'Loading your data first…'; statusEl.style.color = 'var(--amb)';
       var reloaded = await GS.loadAll();
       renderDash();
       statusEl.textContent = reloaded
         ? '✓ Loaded latest data from Sheets. Check it looks right, then press again to save.'
         : '✗ Could not load from Sheets — NOT saving, to protect your data. Check your connection and try again.';
-      statusEl.style.color = reloaded ? '#0F6E56' : '#A32D2D';
+      statusEl.style.color = reloaded ? 'var(--pri)' : 'var(--dgr)';
       return;
     }
-    statusEl.textContent = 'Saving all data…'; statusEl.style.color = '#854F0B';
+    statusEl.textContent = 'Saving all data…'; statusEl.style.color = 'var(--amb)';
     await GS.flush();
     var failed = await GS.saveAll();
     if (failed.length) {
       statusEl.innerHTML = '⚠ Could NOT save: <b>' + failed.join(', ') + '</b>. Keep this tab open — your data is still on screen. '
         + (GS.serverV >= 2 ? 'Check your connection and press again.' : 'Your Apps Script needs the small update (Code.gs) to handle large saves — paste it, then press again.');
-      statusEl.style.color = '#A32D2D';
+      statusEl.style.color = 'var(--dgr)';
     } else {
       statusEl.textContent = '✓ All data saved to Google Sheets (' +
         new Date().toLocaleTimeString() + ')';
-      statusEl.style.color = '#0F6E56';
+      statusEl.style.color = 'var(--pri)';
     }
     return;
   }
 
-  if (!url) { statusEl.textContent = 'Paste the URL first'; statusEl.style.color = '#A32D2D'; return; }
+  if (!url) { statusEl.textContent = 'Paste the URL first'; statusEl.style.color = 'var(--dgr)'; return; }
   GS.setUrl(url);
-  statusEl.textContent = 'Testing…'; statusEl.style.color = '#854F0B';
+  statusEl.textContent = 'Testing…'; statusEl.style.color = 'var(--amb)';
   var ok = await GS.ping();
   if (ok) {
-    statusEl.textContent = '✓ Connected! Loading data…'; statusEl.style.color = '#0F6E56';
+    statusEl.textContent = '✓ Connected! Loading data…'; statusEl.style.color = 'var(--pri)';
     var loaded = await GS.loadAll();
     renderDash();
     applyBranding();
     if (loaded) {
-      document.getElementById('gs-banner').style.background = '#E1F5EE';
-      document.getElementById('gs-banner').style.borderColor = '#0F6E56';
+      document.getElementById('gs-banner').style.background = 'var(--pri-bg)';
+      document.getElementById('gs-banner').style.borderColor = 'var(--pri)';
       if (btn) btn.textContent = '💾 Save all now';
       statusEl.textContent = '✓ Connected & synced';
       try { localStorage.setItem('bt_gs_url', url); } catch (e) {}
     } else {
       statusEl.textContent = '✗ Connected, but loading failed — try Connect again before entering data.';
-      statusEl.style.color = '#A32D2D';
+      statusEl.style.color = 'var(--dgr)';
     }
   } else {
     GS.url = '';
     statusEl.innerHTML = '✗ Could not connect. Quick test: open <b>your-URL?action=ping</b> in the browser — it should show {"ok":true,"v":2}. If it shows a sign-in page, set the deployment to Execute as: <b>Me</b> and access: <b>Anyone</b>. If it shows an old response or error, do Deploy → Manage deployments → ✎ → <b>New version</b> → Deploy, and copy the /exec URL from there.';
-    statusEl.style.color = '#A32D2D';
+    statusEl.style.color = 'var(--dgr)';
   }
 }
 
@@ -3718,7 +3757,7 @@ const LEAVE_LABELS = {
   family:'Family Responsibility Leave', unpaid:'Unpaid Leave', other:'Leave'
 };
 const LEAVE_COLORS = {
-  annual:'#534AB7', sick:'#A32D2D', family:'#185FA5', unpaid:'#854F0B', other:'#5F5E5A'
+  annual:'#534AB7', sick:'var(--dgr)', family:'var(--inf)', unpaid:'var(--amb)', other:'#5F5E5A'
 };
 const LEAVE_BG = {
   annual:'#EEEDFE', sick:'#FCEBEB', family:'#E6F1FB', unpaid:'#FAEEDA', other:'#F1EFE8'
@@ -3817,7 +3856,7 @@ function renderLeaveLog() {
   var el=document.getElementById('leave-log');
   if(!el)return;
   var all=(D.leave||[]).slice();
-  if(!all.length){el.innerHTML='<div style="font-size:11px;color:#6b6b6b;padding:8px 0">No leave recorded yet.</div>';return;}
+  if(!all.length){el.innerHTML='<div style="font-size:11px;color:var(--mut);padding:8px 0">No leave recorded yet.</div>';return;}
   var byEmp={};
   all.forEach(function(l){
     if(!byEmp[l.empId])byEmp[l.empId]=[];
@@ -3837,9 +3876,9 @@ function renderLeaveLog() {
       +' · '+Object.keys(counts).map(function(t){return (LEAVE_LABELS[t]||t)+' '+counts[t];}).join(' · ');
     var head='<div style="display:flex;align-items:center;gap:8px;padding:6px 0">'
       +'<span onclick="toggleLeaveEmp(\''+g.empId+'\')" style="flex:1;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none">'
-      +'<span style="font-size:10px;color:#6b6b6b;width:12px">'+(open?'▾':'▸')+'</span>'
+      +'<span style="font-size:10px;color:var(--mut);width:12px">'+(open?'▾':'▸')+'</span>'
       +'<span style="font-weight:600;font-size:12px">'+g.name+'</span>'
-      +'<span style="font-size:10px;color:#6b6b6b">'+summary+'</span></span>'
+      +'<span style="font-size:10px;color:var(--mut)">'+summary+'</span></span>'
       +'<button class="btn bs" onclick="openLeaveModal('+g.empId+')" style="font-size:10px">+Add</button></div>';
     var body='';
     if(open){
@@ -3849,11 +3888,11 @@ function renderLeaveLog() {
         var bg=LEAVE_BG[r.leaveType]||'#F1EFE8';
         var col=LEAVE_COLORS[r.leaveType]||'#333';
         var label=LEAVE_LABELS[r.leaveType]||r.leaveType;
-        return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #f0f0ee">'
-          +'<span style="font-size:11px;min-width:82px;color:#6b6b6b">'+(r.from===r.to?r.from:r.from+' → '+r.to)+'</span>'
+        return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line2)">'
+          +'<span style="font-size:11px;min-width:82px;color:var(--mut)">'+(r.from===r.to?r.from:r.from+' → '+r.to)+'</span>'
           +'<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;background:'+bg+';color:'+col+'">'+label+'</span>'
-          +(r.days>1?'<span style="font-size:10px;color:#6b6b6b;font-weight:500">'+r.days+' days</span>':'')
-          +(r.note?'<span style="font-size:10px;color:#6b6b6b">'+r.note+'</span>':'')
+          +(r.days>1?'<span style="font-size:10px;color:var(--mut);font-weight:500">'+r.days+' days</span>':'')
+          +(r.note?'<span style="font-size:10px;color:var(--mut)">'+r.note+'</span>':'')
           +'<button class="btn bs bd2c" style="margin-left:auto" onclick="deleteLeaveRange('+g.empId+',\''+r.from+'\',\''+r.to+'\',\''+r.leaveType+'\')">✕</button>'
           +'</div>';
       }).join('')+'</div>';
@@ -3937,24 +3976,24 @@ function generateReport(){
   // ── Render ─────────────────────────────────────────────
   document.getElementById('report-output').innerHTML = `
   <div id="printable-report">
-    <div style="border-bottom:2px solid #1a1a1a;padding-bottom:12px;margin-bottom:20px">
+    <div style="border-bottom:2px solid var(--tx);padding-bottom:12px;margin-bottom:20px">
       <div style="font-size:20px;font-weight:700">Profit & Loss Report</div>
-      <div style="font-size:13px;color:#6b6b6b;margin-top:3px">${from} to ${to} &nbsp;·&nbsp; ${months.toFixed(1)} months</div>
+      <div style="font-size:13px;color:var(--mut);margin-top:3px">${from} to ${to} &nbsp;·&nbsp; ${months.toFixed(1)} months</div>
     </div>
 
     <!-- Summary -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
       <div style="background:#E8F5E9;border-radius:10px;padding:14px 16px">
-        <div style="font-size:10px;font-weight:600;color:#0F6E56;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total income</div>
-        <div style="font-size:20px;font-weight:700;color:#0F6E56">${fmt(totalIncome)}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--pri);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total income</div>
+        <div style="font-size:20px;font-weight:700;color:var(--pri)">${fmt(totalIncome)}</div>
       </div>
       <div style="background:#FCEBEB;border-radius:10px;padding:14px 16px">
-        <div style="font-size:10px;font-weight:600;color:#A32D2D;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total expenses</div>
-        <div style="font-size:20px;font-weight:700;color:#A32D2D">${fmt(totalExpense)}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--dgr);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Total expenses</div>
+        <div style="font-size:20px;font-weight:700;color:var(--dgr)">${fmt(totalExpense)}</div>
       </div>
       <div style="background:${netPL>=0?'#E8F5E9':'#FCEBEB'};border-radius:10px;padding:14px 16px">
-        <div style="font-size:10px;font-weight:600;color:${netPL>=0?'#0F6E56':'#A32D2D'};text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Net ${netPL>=0?'profit':'loss'}</div>
-        <div style="font-size:20px;font-weight:700;color:${netPL>=0?'#0F6E56':'#A32D2D'}">${fmt(Math.abs(netPL))}</div>
+        <div style="font-size:10px;font-weight:600;color:${netPL>=0?'var(--pri)':'var(--dgr)'};text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Net ${netPL>=0?'profit':'loss'}</div>
+        <div style="font-size:20px;font-weight:700;color:${netPL>=0?'var(--pri)':'var(--dgr)'}">${fmt(Math.abs(netPL))}</div>
       </div>
     </div>
 
@@ -3972,18 +4011,18 @@ function generateReport(){
           ${siteRows.map(r=>`<tr>
             <td class="rep-td">${r.name}</td>
             <td class="rep-td" style="text-align:right">${fmt(r.agreedInRange)}</td>
-            <td class="rep-td" style="text-align:right;color:#A32D2D">${fmt(r.lCost)}</td>
-            <td class="rep-td" style="text-align:right;color:#A32D2D">${fmt(r.mCost)}</td>
-            <td class="rep-td" style="text-align:right;color:#A32D2D">${fmt(r.totalCost)}</td>
-            <td class="rep-td" style="text-align:right;font-weight:600;color:${r.profit>=0?'#0F6E56':'#A32D2D'}">${fmt(r.profit)}</td>
+            <td class="rep-td" style="text-align:right;color:var(--dgr)">${fmt(r.lCost)}</td>
+            <td class="rep-td" style="text-align:right;color:var(--dgr)">${fmt(r.mCost)}</td>
+            <td class="rep-td" style="text-align:right;color:var(--dgr)">${fmt(r.totalCost)}</td>
+            <td class="rep-td" style="text-align:right;font-weight:600;color:${r.profit>=0?'var(--pri)':'var(--dgr)'}">${fmt(r.profit)}</td>
           </tr>`).join('')}
         </tbody>
         <tfoot><tr>
           <td class="rep-td" style="font-weight:600">Total</td>
           <td class="rep-td" style="text-align:right;font-weight:600">${fmt(constrAgreed)}</td>
           <td class="rep-td"></td><td class="rep-td"></td>
-          <td class="rep-td" style="text-align:right;font-weight:600;color:#A32D2D">${fmt(constrCost)}</td>
-          <td class="rep-td" style="text-align:right;font-weight:600;color:${constrProfit>=0?'#0F6E56':'#A32D2D'}">${fmt(constrProfit)}</td>
+          <td class="rep-td" style="text-align:right;font-weight:600;color:var(--dgr)">${fmt(constrCost)}</td>
+          <td class="rep-td" style="text-align:right;font-weight:600;color:${constrProfit>=0?'var(--pri)':'var(--dgr)'}">${fmt(constrProfit)}</td>
         </tr></tfoot>
       </table>` : '<div class="rep-empty">No construction activity in this period</div>'}
     </div>
@@ -3993,8 +4032,8 @@ function generateReport(){
       <div class="rep-title">Material sales</div>
       <div class="rep-row"><span>Sales revenue (${salesInRange.length} sales)</span><span>${fmt(salesGross)}</span></div>
       <div class="rep-row sub"><span>Cost of goods sold (landed cost)</span><span class="rep-r">${fmt(salesCOGS)}</span></div>
-      <div class="rep-row sub"><span>Cash collected in period</span><span style="color:#0F6E56">${fmt(salesCollected)}</span></div>
-      <div class="rep-row total"><span>Gross margin</span><span style="color:${salesMargin>=0?'#0F6E56':'#A32D2D'}">${fmt(salesMargin)}</span></div>
+      <div class="rep-row sub"><span>Cash collected in period</span><span style="color:var(--pri)">${fmt(salesCollected)}</span></div>
+      <div class="rep-row total"><span>Gross margin</span><span style="color:${salesMargin>=0?'var(--pri)':'var(--dgr)'}">${fmt(salesMargin)}</span></div>
       ${posInRange.length?`<div class="rep-row sub" style="margin-top:4px"><span>Stock purchases / POs in period (${posInRange.length})</span><span class="rep-r">${fmt(totalLanded)}</span></div>`:''}
     </div>
 
@@ -4013,27 +4052,27 @@ function generateReport(){
     <div class="rep-section">
       <div class="rep-title">Machinery & equipment</div>
       ${machInRange.length?machInRange.map(m=>`<div class="rep-row sub"><span>${m.name} — ${m.date}${m.supplier?' ('+m.supplier+')':''}</span><span class="rep-r">${fmt(m.cost)}</span></div>`).join(''):'<div class="rep-empty">No machinery purchased in this period</div>'}
-      ${machSold.length?machSold.map(m=>`<div class="rep-row sub"><span>Sold: ${m.name} on ${m.saleDate}</span><span style="color:#0F6E56">${fmt(m.salePrice)}</span></div>`).join(''):''}
+      ${machSold.length?machSold.map(m=>`<div class="rep-row sub"><span>Sold: ${m.name} on ${m.saleDate}</span><span style="color:var(--pri)">${fmt(m.salePrice)}</span></div>`).join(''):''}
       <div class="rep-row total"><span>Net machinery cost</span><span class="rep-r">${fmt(machCost-machRevenue)}</span></div>
     </div>
 
     <!-- Overall P&L -->
-    <div class="rep-section" style="background:#f7f7f5;border-radius:10px;padding:14px 16px">
+    <div class="rep-section" style="background:var(--bg2);border-radius:10px;padding:14px 16px">
       <div class="rep-title">Overall P&L summary</div>
-      <div class="rep-row sub"><span>Construction income</span><span style="color:#0F6E56">${fmt(constrAgreed)}</span></div>
-      <div class="rep-row sub"><span>Material sales revenue</span><span style="color:#0F6E56">${fmt(salesGross)}</span></div>
-      ${machRevenue?`<div class="rep-row sub"><span>Machinery sale proceeds</span><span style="color:#0F6E56">${fmt(machRevenue)}</span></div>`:''}
+      <div class="rep-row sub"><span>Construction income</span><span style="color:var(--pri)">${fmt(constrAgreed)}</span></div>
+      <div class="rep-row sub"><span>Material sales revenue</span><span style="color:var(--pri)">${fmt(salesGross)}</span></div>
+      ${machRevenue?`<div class="rep-row sub"><span>Machinery sale proceeds</span><span style="color:var(--pri)">${fmt(machRevenue)}</span></div>`:''}
       <div class="rep-row sub" style="margin-top:6px"><span>Construction costs</span><span class="rep-r">${fmt(constrCost)}</span></div>
       <div class="rep-row sub"><span>Material cost of goods</span><span class="rep-r">${fmt(salesCOGS)}</span></div>
       <div class="rep-row sub"><span>Staff costs</span><span class="rep-r">${fmt(totalStaff)}</span></div>
       <div class="rep-row sub"><span>Machinery purchases</span><span class="rep-r">${fmt(machCost)}</span></div>
-      <div class="rep-row total" style="font-size:14px;padding-top:10px;margin-top:6px;border-top:2px solid #1a1a1a">
+      <div class="rep-row total" style="font-size:14px;padding-top:10px;margin-top:6px;border-top:2px solid var(--tx)">
         <span>Net ${netPL>=0?'Profit':'Loss'}</span>
-        <span style="color:${netPL>=0?'#0F6E56':'#A32D2D'}">${fmt(Math.abs(netPL))}</span>
+        <span style="color:${netPL>=0?'var(--pri)':'var(--dgr)'}">${fmt(Math.abs(netPL))}</span>
       </div>
     </div>
 
-    <div style="margin-top:20px;font-size:10px;color:#6b6b6b;text-align:center">
+    <div style="margin-top:20px;font-size:10px;color:var(--mut);text-align:center">
       Generated by BuildTrack · ${new Date().toLocaleDateString()} · ${from} to ${to}
     </div>
   </div>`;
@@ -4152,14 +4191,14 @@ function addPOItemRow(){
 
 function renderPOItemRows(){
   document.getElementById('po-items-wrap').innerHTML=_poItems.map(item=>{
-    return`<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0ee" id="${item.id}">
-      <input type="text" placeholder="Item name (e.g. Cement, Rebar 12mm)" value="${item.name||''}" style="flex:2;padding:6px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemName('${item.id}',this.value)">
-      <input type="text" placeholder="Unit" value="${item.unit||''}" style="width:65px;padding:6px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemUnit('${item.id}',this.value)">
-      <input type="number" placeholder="Qty" value="${item.qty||''}" style="width:65px;padding:6px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemQty('${item.id}',this.value)">
-      <span style="font-size:11px;color:#6b6b6b">@ MVR</span>
-      <input type="number" placeholder="Cost/unit" value="${item.unitCost||''}" style="width:95px;padding:6px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemCost('${item.id}',this.value)">
-      <span style="font-size:11px;color:#6b6b6b;min-width:60px">${fmt(item.qty*item.unitCost)}</span>
-      ${_poItems.length>1?`<button class="btn bs" style="color:#A32D2D;padding:4px 8px" onclick="removePOItemRow('${item.id}')">✕</button>`:''}
+    return`<div style="display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line2)" id="${item.id}">
+      <input type="text" placeholder="Item name (e.g. Cement, Rebar 12mm)" value="${item.name||''}" style="flex:2;padding:6px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemName('${item.id}',this.value)">
+      <input type="text" placeholder="Unit" value="${item.unit||''}" style="width:65px;padding:6px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemUnit('${item.id}',this.value)">
+      <input type="number" placeholder="Qty" value="${item.qty||''}" style="width:65px;padding:6px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemQty('${item.id}',this.value)">
+      <span style="font-size:11px;color:var(--mut)">@ MVR</span>
+      <input type="number" placeholder="Cost/unit" value="${item.unitCost||''}" style="width:95px;padding:6px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="onPOItemCost('${item.id}',this.value)">
+      <span style="font-size:11px;color:var(--mut);min-width:60px">${fmt(item.qty*item.unitCost)}</span>
+      ${_poItems.length>1?`<button class="btn bs" style="color:var(--dgr);padding:4px 8px" onclick="removePOItemRow('${item.id}')">✕</button>`:''}
     </div>`;
   }).join('');
   updatePOWholesaleTotal();
@@ -4189,12 +4228,12 @@ function updatePOGST(){
   if(!subtotal){el.textContent='';return;}
   if(apply){
     el.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px">
-      <div style="display:flex;justify-content:space-between"><span style="color:#6b6b6b">Subtotal (excl. GST)</span><span>${fmt(subtotal)}</span></div>
-      <div style="display:flex;justify-content:space-between"><span style="color:#6b6b6b">GST (${rate}%)</span><span style="color:#A32D2D">${fmt(gst)}</span></div>
-      <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid #e8e8e4;padding-top:4px"><span>Total incl. GST</span><span>${fmt(total)}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">Subtotal (excl. GST)</span><span>${fmt(subtotal)}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--mut)">GST (${rate}%)</span><span style="color:var(--dgr)">${fmt(gst)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-weight:600;border-top:1px solid var(--line);padding-top:4px"><span>Total incl. GST</span><span>${fmt(total)}</span></div>
     </div>`;
   } else {
-    el.innerHTML=`<div style="color:#6b6b6b;font-size:11px">GST not applied. Total: ${fmt(subtotal)}</div>`;
+    el.innerHTML=`<div style="color:var(--mut);font-size:11px">GST not applied. Total: ${fmt(subtotal)}</div>`;
   }
 }
 
@@ -4259,35 +4298,35 @@ function renderPOs(){
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
         <div>
           <div style="font-weight:600;font-size:13px">${po.supplier} ${statusBadge[po.status]||''}</div>
-          <div style="font-size:11px;color:#6b6b6b">${normDate(po.date)}${po.ref?' · Ref: '+po.ref:''}</div>
+          <div style="font-size:11px;color:var(--mut)">${normDate(po.date)}${po.ref?' · Ref: '+po.ref:''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-weight:500">${fmt(po.wholesaleTotal)}</div>
-          <div style="font-size:10px;color:#6b6b6b">${rcvQty}/${totalQty} units received</div>
+          <div style="font-size:10px;color:var(--mut)">${rcvQty}/${totalQty} units received</div>
         </div>
       </div>
-      <div style="margin-bottom:6px;font-size:11px;color:#6b6b6b">
-        ${po.items.map(i=>`${i.qty} ${i.unit} ${i.name} @ ${fmt(i.unitCost)} <span style="color:${(i.qtyReceived||0)>=i.qty?'#0F6E56':'#854F0B'}">(${i.qtyReceived||0} received)</span>`).join(' · ')}
+      <div style="margin-bottom:6px;font-size:11px;color:var(--mut)">
+        ${po.items.map(i=>`${i.qty} ${i.unit} ${i.name} @ ${fmt(i.unitCost)} <span style="color:${(i.qtyReceived||0)>=i.qty?'var(--pri)':'var(--amb)'}">(${i.qtyReceived||0} received)</span>`).join(' · ')}
       </div>
       <div style="margin-bottom:8px;font-size:11px;display:flex;gap:14px;flex-wrap:wrap">
-        <span style="color:#6b6b6b">Subtotal: ${fmt(po.wholesaleTotal)}</span>
-        ${po.gstApply?`<span style="color:#A32D2D">GST ${po.gstRate||8}%: ${fmt(po.gstAmount||0)}</span><span style="font-weight:500">Total incl. GST: ${fmt(po.wholesaleTotal+(po.gstAmount||0))}</span>`:'<span style="color:#6b6b6b">No GST</span>'}
+        <span style="color:var(--mut)">Subtotal: ${fmt(po.wholesaleTotal)}</span>
+        ${po.gstApply?`<span style="color:var(--dgr)">GST ${po.gstRate||8}%: ${fmt(po.gstAmount||0)}</span><span style="font-weight:500">Total incl. GST: ${fmt(po.wholesaleTotal+(po.gstAmount||0))}</span>`:'<span style="color:var(--mut)">No GST</span>'}
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="flex:1;background:#f7f7f5;border-radius:20px;height:5px;overflow:hidden"><div style="height:100%;border-radius:20px;background:#0F6E56;width:${pct}%"></div></div>
-        <span style="font-size:10px;color:#6b6b6b">${fmt(paid)} paid of ${fmt(po.wholesaleTotal)}</span>
-        ${outstanding>0?`<span style="font-size:11px;color:#A32D2D;font-weight:500">${fmt(outstanding)} due</span>`:'<span style="font-size:11px;color:#0F6E56">✓ Paid</span>'}
+        <div style="flex:1;background:var(--bg2);border-radius:20px;height:5px;overflow:hidden"><div style="height:100%;border-radius:20px;background:var(--pri);width:${pct}%"></div></div>
+        <span style="font-size:10px;color:var(--mut)">${fmt(paid)} paid of ${fmt(po.wholesaleTotal)}</span>
+        ${outstanding>0?`<span style="font-size:11px;color:var(--dgr);font-weight:500">${fmt(outstanding)} due</span>`:'<span style="font-size:11px;color:var(--pri)">✓ Paid</span>'}
       </div>
-      ${po.notes?`<div style="font-size:11px;color:#6b6b6b;margin-bottom:8px">${po.notes}</div>`:''}
-      ${po.payments&&po.payments.length?`<div style="margin-bottom:8px">${po.payments.map((p,pidx)=>`<div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6b6b6b;background:#f7f7f5;border-radius:6px;padding:3px 8px;margin:2px 4px 2px 0">${p.date}: ${fmt(p.amount)}${p.note?' ('+p.note+')':''}<button onclick="deletePOPayment(${po.id},${pidx})" style="border:none;background:none;color:#A32D2D;cursor:pointer;font-size:11px;padding:0 2px" title="Delete this payment">✕</button></div>`).join('')}</div>`:''}
-      ${po.items.some(i=>(i.qtyReceived||0)>0&&!i.linkedStockKey)?`<div style="background:#FCEBEB;border:1px solid #E57373;border-radius:7px;padding:8px 12px;font-size:11px;color:#A32D2D;margin-bottom:8px">⚠ Some received items were not linked to stock (from before this was fixed). <button class="btn bs" style="margin-left:6px;font-size:10px;padding:2px 8px" onclick="repairPOLinks(${po.id})">Fix now</button></div>`:''}
+      ${po.notes?`<div style="font-size:11px;color:var(--mut);margin-bottom:8px">${po.notes}</div>`:''}
+      ${po.payments&&po.payments.length?`<div style="margin-bottom:8px">${po.payments.map((p,pidx)=>`<div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--mut);background:var(--bg2);border-radius:6px;padding:3px 8px;margin:2px 4px 2px 0">${p.date}: ${fmt(p.amount)}${p.note?' ('+p.note+')':''}<button onclick="deletePOPayment(${po.id},${pidx})" style="border:none;background:none;color:var(--dgr);cursor:pointer;font-size:11px;padding:0 2px" title="Delete this payment">✕</button></div>`).join('')}</div>`:''}
+      ${po.items.some(i=>(i.qtyReceived||0)>0&&!i.linkedStockKey)?`<div style="background:#FCEBEB;border:1px solid #E57373;border-radius:7px;padding:8px 12px;font-size:11px;color:var(--dgr);margin-bottom:8px">⚠ Some received items were not linked to stock (from before this was fixed). <button class="btn bs" style="margin-left:6px;font-size:10px;padding:2px 8px" onclick="repairPOLinks(${po.id})">Fix now</button></div>`:''}
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn bs" onclick="openPOPayment(${po.id})" style="color:#0F6E56">💰 Log payment</button>
-        ${!allReceived?`<button class="btn bs" onclick="openReceive(${po.id})" style="color:#185FA5">📦 Receive items</button>`:''}
-        <button class="btn bs" style="color:#A32D2D" onclick="if(confirm('Delete this PO?')){D.purchaseOrders=D.purchaseOrders.filter(x=>x.id!==${po.id});GS.save('purchaseOrders');renderPOs()}">✕ Delete</button>
+        <button class="btn bs" onclick="openPOPayment(${po.id})" style="color:var(--pri)">💰 Log payment</button>
+        ${!allReceived?`<button class="btn bs" onclick="openReceive(${po.id})" style="color:var(--inf)">📦 Receive items</button>`:''}
+        <button class="btn bs" style="color:var(--dgr)" onclick="if(confirm('Delete this PO?')){D.purchaseOrders=D.purchaseOrders.filter(x=>x.id!==${po.id});GS.save('purchaseOrders');renderPOs()}">✕ Delete</button>
       </div>
     </div>`;
-  }).join(''):'<div style="text-align:center;padding:32px;color:#6b6b6b">No purchase orders yet. Click New purchase order to start.</div>';
+  }).join(''):'<div style="text-align:center;padding:32px;color:var(--mut)">No purchase orders yet. Click New purchase order to start.</div>';
   renderExtPurchases();
 }
 
@@ -4299,11 +4338,11 @@ function scrollToExtPurchases(){
 // Payment badge for an external purchase: the ACTUAL method used —
 // BANK or CASH (with holder) — never a hard-coded label.
 function extPayBadge(p){
-  if(p.credit&&!p.paid)return`<span class="badge bd2c" style="font-size:9px;color:#A32D2D">ON CREDIT</span>`;
+  if(p.credit&&!p.paid)return`<span class="badge bd2c" style="font-size:9px;color:var(--dgr)">ON CREDIT</span>`;
   const m=(p.payMethod||'').toLowerCase();
   const mTag=m==='bank'?'BANK':(m==='cash'?('CASH'+(p.payHolder?' · '+p.payHolder:'')):'');
   if(p.credit&&p.paid)return`<span class="badge ba" style="font-size:9px">PAID${mTag?' · '+mTag:''}${p.paidDate?' '+p.paidDate:''}</span>`;
-  if(m==='bank')return`<span class="badge" style="background:#E8F4FD;color:#185FA5;font-size:9px">BANK</span>`;
+  if(m==='bank')return`<span class="badge" style="background:var(--inf-bg);color:var(--inf);font-size:9px">BANK</span>`;
   if(m==='cash')return`<span class="badge bd2" style="font-size:9px">CASH${p.payHolder?' · '+p.payHolder:''}</span>`;
   return`<span class="badge bd2" style="font-size:9px">PAID</span>`;
 }
@@ -4338,17 +4377,17 @@ function renderExtPurchases(){
   const total=list.reduce((a,p)=>a+p.amount,0);
   const owed=list.filter(p=>p.credit&&!p.paid).reduce((a,p)=>a+p.amount,0);
   const btn=document.getElementById('po-ext-btn');
-  if(btn)btn.innerHTML='🧾 External purchases ('+list.length+')'+(owed>0?' <span style="color:#A32D2D;font-weight:600">· '+fmt(owed)+' owed</span>':'');
-  if(!list.length){el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases</span></div><div style="font-size:11px;color:#6b6b6b;padding:6px 0">No external purchases yet. Log one from a worksite: Log → Material → Bought externally.</div></div>`;return;}
+  if(btn)btn.innerHTML='🧾 External purchases ('+list.length+')'+(owed>0?' <span style="color:var(--dgr);font-weight:600">· '+fmt(owed)+' owed</span>':'');
+  if(!list.length){el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases</span></div><div style="font-size:11px;color:var(--mut);padding:6px 0">No external purchases yet. Log one from a worksite: Log → Material → Bought externally.</div></div>`;return;}
   const rows=list.map(p=>{
     const status=extPayBadge(p);
-    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
-      <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:#6b6b6b">${p.date} · ${p.siteName}</div></span>
-      <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:#0F6E56" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:#A32D2D" onclick="deleteExtPurchase(${p.siteId},${p.idx},'${p.vpId||''}')">✕</button></span>
+    return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:12px">
+      <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:var(--mut)">${p.date} · ${p.siteName}</div></span>
+      <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:var(--pri)" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:var(--dgr)" onclick="deleteExtPurchase(${p.siteId},${p.idx},'${p.vpId||''}')">✕</button></span>
     </div>`;
   });
-  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases — ${fmt(total)} total${owed>0?` · <span style="color:#A32D2D">${fmt(owed)} owed to vendors</span>`:''}</span></div>
-    <div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">Every material bought locally across all worksites. Credit items can be marked paid here or on the Finance/Settlements pages.</div>
+  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases — ${fmt(total)} total${owed>0?` · <span style="color:var(--dgr)">${fmt(owed)} owed to vendors</span>`:''}</span></div>
+    <div style="font-size:11px;color:var(--mut);margin-bottom:6px">Every material bought locally across all worksites. Credit items can be marked paid here or on the Finance/Settlements pages.</div>
     ${limitLog(rows,'extpurch','renderExtPurchases()',10)}</div>`;
 }
 
@@ -4431,13 +4470,13 @@ function openReceive(poId){
   const stockOptions=Object.entries(D.stocks).map(([k,v])=>`<option value="${k}">${v.name} (${v.unit})</option>`).join('');
 
   if(!po.items||!po.items.length){
-    document.getElementById('rcv-items-wrap').innerHTML='<div style="padding:14px 4px;color:#A32D2D;font-size:12px;line-height:1.5">⚠ This purchase order has no line items — its item data did not sync to Google Sheets correctly. Delete this PO and create it again with its items, then receive it.</div>';
+    document.getElementById('rcv-items-wrap').innerHTML='<div style="padding:14px 4px;color:var(--dgr);font-size:12px;line-height:1.5">⚠ This purchase order has no line items — its item data did not sync to Google Sheets correctly. Delete this PO and create it again with its items, then receive it.</div>';
     updateRcvTotals();
     openModal('modal-receive');
     return;
   }
   if(!pending.length){
-    document.getElementById('rcv-items-wrap').innerHTML='<div style="padding:14px 4px;color:#0F6E56;font-size:12px;line-height:1.5">✓ Every item on this order has already been received in full. Nothing left to receive.</div>';
+    document.getElementById('rcv-items-wrap').innerHTML='<div style="padding:14px 4px;color:var(--pri);font-size:12px;line-height:1.5">✓ Every item on this order has already been received in full. Nothing left to receive.</div>';
     updateRcvTotals();
     openModal('modal-receive');
     return;
@@ -4447,24 +4486,24 @@ function openReceive(poId){
     // Try to auto-match by name
     const autoMatch=Object.entries(D.stocks).find(([k,v])=>v.name.toLowerCase().trim()===item.name.toLowerCase().trim());
     const matchedKey=autoMatch?autoMatch[0]:'__new__';
-    return`<div style="padding:10px 0;border-bottom:1px solid #f0f0ee" id="rcv-item-${idx}">
+    return`<div style="padding:10px 0;border-bottom:1px solid var(--line2)" id="rcv-item-${idx}">
       <div style="font-weight:500;font-size:12px;margin-bottom:6px">${item.name} — ordered: ${item.qty} ${item.unit} · received so far: ${item.qtyReceived||0}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <label style="font-size:11px;color:#6b6b6b;min-width:80px">Qty now:</label>
-        <input type="number" id="rcv_qty_${idx}" placeholder="0" max="${item.qty-(item.qtyReceived||0)}" value="${item.qty-(item.qtyReceived||0)}" style="width:80px;padding:5px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="updateRcvTotals()">
-        <span style="font-size:11px;color:#6b6b6b">of ${item.qty-(item.qtyReceived||0)} remaining</span>
+        <label style="font-size:11px;color:var(--mut);min-width:80px">Qty now:</label>
+        <input type="number" id="rcv_qty_${idx}" placeholder="0" max="${item.qty-(item.qtyReceived||0)}" value="${item.qty-(item.qtyReceived||0)}" style="width:80px;padding:5px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" oninput="updateRcvTotals()">
+        <span style="font-size:11px;color:var(--mut)">of ${item.qty-(item.qtyReceived||0)} remaining</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <label style="font-size:11px;color:#6b6b6b;min-width:80px">Add to stock:</label>
-        <select id="rcv_stock_${idx}" style="flex:1;padding:5px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif" onchange="onRcvStockChange(${idx})">
+        <label style="font-size:11px;color:var(--mut);min-width:80px">Add to stock:</label>
+        <select id="rcv_stock_${idx}" style="flex:1;padding:5px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif" onchange="onRcvStockChange(${idx})">
           ${stockOptions}
           <option value="__new__"${matchedKey==='__new__'?' selected':''}>+ Create new stock item "${item.name}"</option>
         </select>
       </div>
       <div id="rcv_price_${idx}" style="display:${matchedKey==='__new__'?'':'none'};align-items:center;gap:8px">
-        <label style="font-size:11px;color:#6b6b6b;min-width:80px">Sale price:</label>
-        <input type="number" id="rcv_saleprice_${idx}" placeholder="MVR per ${item.unit}" style="width:140px;padding:5px 8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
-        <span style="font-size:10px;color:#6b6b6b">per ${item.unit} — sets the sale price for this new stock item</span>
+        <label style="font-size:11px;color:var(--mut);min-width:80px">Sale price:</label>
+        <input type="number" id="rcv_saleprice_${idx}" placeholder="MVR per ${item.unit}" style="width:140px;padding:5px 8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif">
+        <span style="font-size:10px;color:var(--mut)">per ${item.unit} — sets the sale price for this new stock item</span>
       </div>
     </div>`;
   }).join('');
@@ -4626,12 +4665,12 @@ function openSettle(siteId){
     (st.localPurchCost>0?`<br><span style="font-size:11px">External purchases of ${fmt(st.localPurchCost)} are excluded (paid directly to suppliers).</span>`:'');
   const bd=buildMatBreakdown(s);
   document.getElementById('settle-breakdown').innerHTML=bd.length?`
-    <div style="font-size:10px;font-weight:500;color:#6b6b6b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">You are settling these materials</div>
-    <div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:8px;padding:8px 12px">
+    <div style="font-size:10px;font-weight:500;color:var(--mut);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px">You are settling these materials</div>
+    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 12px">
       ${bd.map(g=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span>${g.name} — ${g.qty} ${g.unit}</span><b>${fmt(g.cost)}</b></div>`).join('')}
       <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-top:1px solid #e0e0dc;margin-top:3px"><span>Total warehouse materials</span><b>${fmt(st.mCost)}</b></div>
-      ${st.settledAmt>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6b6b;padding:2px 0"><span>Already settled</span><span>− ${fmt(st.settledAmt)}</span></div>`:''}
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:#0F6E56;padding:2px 0"><span><b>Settling now</b></span><b>${fmt(st.unsettledAmt)}</b></div>
+      ${st.settledAmt>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);padding:2px 0"><span>Already settled</span><span>− ${fmt(st.settledAmt)}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--pri);padding:2px 0"><span><b>Settling now</b></span><b>${fmt(st.unsettledAmt)}</b></div>
     </div>`:'';
   document.getElementById('settle-date').value=today();
   document.getElementById('settle-note').value='';
@@ -4662,25 +4701,25 @@ function renderSettlements(){
 
   el1.innerHTML=(unsettled.length?unsettled.map(s=>{
     const st=siteStats(s);
-    return`<div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+    return`<div style="background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
       <div style="flex:1"><div style="font-weight:500;font-size:12px">${s.name}</div>
-      <div style="font-size:11px;color:#6b6b6b">Warehouse materials: ${fmt(st.mCost)} · Settled: ${fmt(st.settledAmt)}${st.localPurchCost>0?' · External (excluded): '+fmt(st.localPurchCost):''}</div></div>
-      <span style="font-weight:500;color:#854F0B">${fmt(st.unsettledAmt)}</span>
-      <button class="btn bs" onclick="openSettle(${s.id})" style="color:#0F6E56">⇄ Settle</button>
+      <div style="font-size:11px;color:var(--mut)">Warehouse materials: ${fmt(st.mCost)} · Settled: ${fmt(st.settledAmt)}${st.localPurchCost>0?' · External (excluded): '+fmt(st.localPurchCost):''}</div></div>
+      <span style="font-weight:500;color:var(--amb)">${fmt(st.unsettledAmt)}</span>
+      <button class="btn bs" onclick="openSettle(${s.id})" style="color:var(--pri)">⇄ Settle</button>
     </div>`;
-  }).join(''):'<div style="font-size:11px;color:#6b6b6b;padding:8px 0">✓ All warehouse material costs settled</div>')+
-  (overSettled.length?overSettled.map(x=>`<div style="background:#FAEEDA;border:1px solid #E4C98A;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:11px;color:#854F0B">
+  }).join(''):'<div style="font-size:11px;color:var(--mut);padding:8px 0">✓ All warehouse material costs settled</div>')+
+  (overSettled.length?overSettled.map(x=>`<div style="background:#FAEEDA;border:1px solid #E4C98A;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:11px;color:var(--amb)">
     ⚠ <b>${x.s.name}</b> is settled for ${fmt(x.st.settledAmt)} but only ${fmt(x.st.mCost)} of warehouse materials were used — likely settled under the old rule that wrongly included external purchases. Delete the settlement below and settle again if you want to correct it.</div>`).join(''):'');
 
   el2.innerHTML=allSettlements.length?`<div class="cs">${limitLog(allSettlements.map(m=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px solid #f0f0ee;color:#6b6b6b">
-      <span><b style="color:#1a1a1a">${m.siteName}</b>${m.note?' — '+m.note:''} <span style="font-size:10px">${m.date}</span></span>
-      <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:#0F6E56;font-weight:500">${fmt(m.amount)}</span>
-      <button onclick="deleteSettlement(${m.siteId},${m.idx})" title="Delete this settlement" style="border:none;background:none;color:#A32D2D;cursor:pointer;font-size:12px;padding:0 2px">✕</button></span>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px solid var(--line2);color:var(--mut)">
+      <span><b style="color:var(--tx)">${m.siteName}</b>${m.note?' — '+m.note:''} <span style="font-size:10px">${m.date}</span></span>
+      <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--pri);font-weight:500">${fmt(m.amount)}</span>
+      <button onclick="deleteSettlement(${m.siteId},${m.idx})" title="Delete this settlement" style="border:none;background:none;color:var(--dgr);cursor:pointer;font-size:12px;padding:0 2px">✕</button></span>
     </div>`),'settlehist','renderSettlements()',8)}
     <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:13px;font-weight:600">
-      <span>Total settled</span><span style="color:#0F6E56">${fmt(allSettlements.reduce((a,m)=>a+m.amount,0))}</span>
-    </div></div>`:'<div style="font-size:11px;color:#6b6b6b">No settlements yet</div>';
+      <span>Total settled</span><span style="color:var(--pri)">${fmt(allSettlements.reduce((a,m)=>a+m.amount,0))}</span>
+    </div></div>`:'<div style="font-size:11px;color:var(--mut)">No settlements yet</div>';
   renderFinVendors();
 }
 
@@ -4734,6 +4773,10 @@ function saveDayWorker(){
     var inp=document.getElementById('gs-url-inline');
     if(saved && inp && !inp.value){ inp.value=saved; gsBannerTest(); }
   }catch(e){}
+  try{
+    var th=null;try{th=localStorage.getItem('bt_theme');}catch(e){}
+    applyTheme(th||'');
+  }catch(e){}
   try{ applyBranding(); }catch(e){}
 })();
 </script>
@@ -4747,7 +4790,7 @@ function saveDayWorker(){
     <div class="fg"><label>Hours</label><input id="ot-hours" type="number" step="0.5" placeholder="e.g. 2" oninput="updateOTTotal()"></div>
     <div class="fg"><label>Rate (MVR / hour)</label><input id="ot-rate" type="number" placeholder="50" oninput="updateOTTotal()"></div>
   </div>
-  <div id="ot-total" style="font-size:12px;font-weight:600;color:#0F6E56;margin-bottom:8px"></div>
+  <div id="ot-total" style="font-size:12px;font-weight:600;color:var(--pri);margin-bottom:8px"></div>
   <div class="fg"><label>Note (optional)</label><input id="ot-note" placeholder="e.g. concrete pour ran late"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-ot')">Cancel</button><button class="btn bp" onclick="saveOT()">Save overtime</button></div>
 </div></div>
@@ -4805,13 +4848,13 @@ function saveDayWorker(){
     <div class="fg"><label>Client name</label><input id="dg-client" placeholder="Client / company"></div>
     <div class="fg"><label>Client address</label><input id="dg-clientaddr" placeholder="optional"></div>
   </div>
-  <div class="fg"><label>Items — tick what to include</label><div id="dg-items" style="max-height:180px;overflow-y:auto;border:1px solid #e8e8e4;border-radius:8px;padding:4px 10px"></div></div>
+  <div class="fg"><label>Items — tick what to include</label><div id="dg-items" style="max-height:180px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 10px"></div></div>
   <div class="fr">
     <div class="fg"><label>Extra item (optional)</label><input id="dg-extra-desc" placeholder="e.g. Transport"></div>
     <div class="fg"><label>Extra amount</label><input id="dg-extra-amt" type="number" placeholder="0"></div>
   </div>
   <div class="fg" id="dg-received-wrap" style="display:none"><label>Less: amount already received (MVR)</label><input id="dg-received" type="number" placeholder="0"></div>
-  <div class="fg"><label>Notes / terms</label><textarea id="dg-terms" rows="2" style="width:100%;padding:8px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></textarea></div>
+  <div class="fg"><label>Notes / terms</label><textarea id="dg-terms" rows="2" style="width:100%;padding:8px;border:1.5px solid var(--inp);border-radius:7px;font-size:12px;font-family:Inter,sans-serif"></textarea></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-docgen')">Cancel</button><button class="btn bp" onclick="generateDoc()">Generate</button></div>
 </div></div>
 <div class="mo" id="modal-salary"><div class="md" style="max-width:500px">
@@ -4819,15 +4862,15 @@ function saveDayWorker(){
   <div class="fg"><label>Date</label><input type="date" id="sal-date"></div>
   <div id="salpay-methodwrap"></div>
   <div class="fg"><label>Tick everyone being paid — amounts are editable</label>
-    <div id="sal-list" style="max-height:280px;overflow-y:auto;border:1px solid #e8e8e4;border-radius:8px;padding:4px 10px"></div>
+    <div id="sal-list" style="max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 10px"></div>
   </div>
-  <div id="sal-summary" style="font-size:11px;color:#6b6b6b;margin-bottom:8px"></div>
+  <div id="sal-summary" style="font-size:11px;color:var(--mut);margin-bottom:8px"></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-salary')">Cancel</button><button class="btn bp" onclick="saveSalaryBatch()">Pay selected</button></div>
 </div></div>
 <div class="mo" id="modal-splitinc"><div class="md" style="max-width:420px">
   <div class="mt">Split payment into labour / materials</div>
   <input type="hidden" id="sp-site"><input type="hidden" id="sp-idx">
-  <div id="sp-info" style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:#185FA5;margin-bottom:10px"></div>
+  <div id="sp-info" style="background:var(--inf-bg);border:1px solid #90CAF9;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--inf);margin-bottom:10px"></div>
   <div class="fr">
     <div class="fg"><label>Labour portion (MVR)</label><input id="sp-lin" type="number" placeholder="0" oninput="onSplitInput()"></div>
     <div class="fg"><label>Material portion (MVR)</label><input id="sp-min" type="number" placeholder="0"></div>
@@ -4840,11 +4883,11 @@ function saveDayWorker(){
   <input type="hidden" id="bf-emp">
   <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="checkbox" id="bf-food" style="width:14px;height:14px"> Food allowance — MVR 1,000/mo</label>
-    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-visa" style="width:14px;height:14px"> Visa fee</label><input id="bf-visa-amt" type="number" placeholder="350" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/mo</span></div>
-    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-quota" style="width:14px;height:14px"> Quota fee</label><input id="bf-quota-amt" type="number" placeholder="2000" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/yr</span></div>
-    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-ins" style="width:14px;height:14px"> Insurance</label><input id="bf-ins-amt" type="number" placeholder="800" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:#6b6b6b">/yr</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-visa" style="width:14px;height:14px"> Visa fee</label><input id="bf-visa-amt" type="number" placeholder="350" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/mo</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-quota" style="width:14px;height:14px"> Quota fee</label><input id="bf-quota-amt" type="number" placeholder="2000" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/yr</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;flex:1"><input type="checkbox" id="bf-ins" style="width:14px;height:14px"> Insurance</label><input id="bf-ins-amt" type="number" placeholder="800" style="width:90px;padding:4px 8px;font-size:12px"><span style="font-size:10px;color:var(--mut)">/yr</span></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer"><input type="checkbox" id="bf-ticket" style="width:14px;height:14px"> Return ticket (every 2 yrs)</label>
-    <div style="font-size:10px;color:#6b6b6b">Leave an amount blank to use the standard rate.</div>
+    <div style="font-size:10px;color:var(--mut)">Leave an amount blank to use the standard rate.</div>
   </div>
   <div style="display:flex;justify-content:flex-end;gap:8px">
     <button class="btn bs" onclick="closeModal('modal-benfees')">Cancel</button>
