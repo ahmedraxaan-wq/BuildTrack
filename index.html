@@ -3374,6 +3374,7 @@ var GS = {
     }
   },
 
+  EXPECTED_V: 3,
   async ping() {
     try {
       const r = await this.call({ action: 'ping' });
@@ -3795,6 +3796,13 @@ async function gsBannerTest() {
   var statusEl = document.getElementById('gs-banner-status');
   var btn = document.getElementById('gs-banner-btn');
   var alreadyConnected = !!GS.url;
+  // The person pasted a DIFFERENT deployment URL while connected —
+  // switch to it (test + load) instead of silently saving to the old one
+  if (alreadyConnected && url && url !== GS.url) {
+    alreadyConnected = false;
+    GS._loadedOnce = false;
+    statusEl.textContent = 'New URL — reconnecting…'; statusEl.style.color = 'var(--amb)';
+  }
 
   if (alreadyConnected) {
     if (!GS._loadedOnce) {
@@ -3807,6 +3815,11 @@ async function gsBannerTest() {
         ? '✓ Loaded latest data from Sheets. Check it looks right, then press again to save.'
         : '✗ Could not load from Sheets — NOT saving, to protect your data. Check your connection and try again.';
       statusEl.style.color = reloaded ? 'var(--pri)' : 'var(--dgr)';
+      return;
+    }
+    if ((GS.serverV || 1) < GS.EXPECTED_V) {
+      statusEl.innerHTML = '⚠ NOT saving: your Google Script is an <b>older version</b> (v' + (GS.serverV||1) + ', app needs v' + GS.EXPECTED_V + '). Paste the newest Code.gs in Apps Script, press Ctrl+S, then Deploy → <b>New deployment</b>, and paste that new /exec URL here.';
+      statusEl.style.color = 'var(--dgr)';
       return;
     }
     statusEl.textContent = 'Saving all data…'; statusEl.style.color = 'var(--amb)';
@@ -3838,6 +3851,10 @@ async function gsBannerTest() {
       document.getElementById('gs-banner').style.borderColor = 'var(--pri)';
       if (btn) btn.textContent = '💾 Save all now';
       statusEl.textContent = '✓ Connected & synced';
+      if ((GS.serverV || 1) < GS.EXPECTED_V) {
+        statusEl.innerHTML = '⚠ Connected & loaded, but this deployment is an <b>older script</b> (v' + (GS.serverV||1) + ' — the app needs v' + GS.EXPECTED_V + '). Saving is paused until you paste the newest Code.gs and connect a NEW deployment URL.';
+        statusEl.style.color = 'var(--amb)';
+      }
       try { localStorage.setItem('bt_gs_url', url); } catch (e) {}
     } else {
       statusEl.textContent = '✗ Connected, but loading failed — try Connect again before entering data.';
@@ -3845,7 +3862,7 @@ async function gsBannerTest() {
     }
   } else {
     GS.url = '';
-    statusEl.innerHTML = '✗ Could not connect. Quick test: open <b>your-URL?action=ping</b> in the browser — it should show {"ok":true,"v":2}. If it shows a sign-in page, set the deployment to Execute as: <b>Me</b> and access: <b>Anyone</b>. If it shows an old response or error, do Deploy → Manage deployments → ✎ → <b>New version</b> → Deploy, and copy the /exec URL from there.';
+    statusEl.innerHTML = '✗ Could not connect. Quick test: open <b>your-URL?action=ping</b> in the browser — it should show {"ok":true,"v":3}. If it shows a sign-in page, set the deployment to Execute as: <b>Me</b> and access: <b>Anyone</b>. If it shows an old response or error, do Deploy → Manage deployments → ✎ → <b>New version</b> → Deploy, and copy the /exec URL from there.';
     statusEl.style.color = 'var(--dgr)';
   }
 }

@@ -43,8 +43,8 @@ function doPost(e) {
 function route(p) {
   var out;
   try {
-    if (p.action === 'ping')         out = { ok: true, v: 2 };
-    else if (p.action === 'loadAll') out = { ok: true, v: 2, data: loadAll() };
+    if (p.action === 'ping')         out = { ok: true, v: 3 };
+    else if (p.action === 'loadAll') out = { ok: true, v: 3, data: loadAll() };
     else if (p.action === 'save')    out = saveTable(p.table, p.data);
     else                             out = { ok: false, error: 'unknown action' };
   } catch (err) {
@@ -124,7 +124,7 @@ function saveTable(table, json) {
     rows.forEach(function (r) {
       for (var f in r) if (headers.indexOf(f) === -1) headers.push(f);
     });
-    if (!headers.length) { sh.clearContents(); return { ok: true, v: 2, rows: 0 }; }
+    if (!headers.length) { sh.clearContents(); return { ok: true, v: 3, rows: 0 }; }
 
     var grid = [headers];
     rows.forEach(function (r) {
@@ -138,7 +138,7 @@ function saveTable(table, json) {
 
     sh.clearContents();
     sh.getRange(1, 1, grid.length, headers.length).setValues(grid);
-    return { ok: true, v: 2, rows: rows.length };
+    return { ok: true, v: 3, rows: rows.length };
   } finally {
     lock.releaseLock();
   }
