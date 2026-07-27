@@ -46,6 +46,9 @@ UPDATES
   it to the same place (GitHub: repo -> index.html -> pencil/Replace ->
   commit). The app picks it up next time you open it online.
 
+TIP: to use YOUR LOGO as the home-screen icon, replace icon-192.png
+and icon-512.png in the repo with your logo (same names, square PNGs).
+
 NOTE
   The plain BuildTrack.html file still works exactly as before if you
   ever need it — the app saves to the same Google Sheet either way.

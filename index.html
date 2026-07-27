@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>BuildTrack</title>
+<title>RAIYVINA — BuildTrack</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0F6E56">
 <link rel="manifest" href="manifest.webmanifest">
@@ -127,12 +127,31 @@ tr:hover td{background:#f0f4ff}
 .rep-td { padding: 7px 8px; border-bottom: 1px solid #f0f0ee; font-size: 12px; }
 .rep-r { color: #A32D2D; }
 .rep-empty { font-size: 11px; color: #6b6b6b; padding: 8px 0; font-style: italic; }
+/* ── Mobile: collapsible menu + comfortable layout ── */
+.topbar{display:none}
+.sb-overlay{display:none}
+.menu-btn{border:none;background:none;font-size:22px;line-height:1;cursor:pointer;color:#1a1a1a;padding:2px 6px}
+.tb-brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;letter-spacing:0.02em}
+.tb-brand img{max-height:24px}
+.sb-logo img{max-height:26px;vertical-align:middle;margin-right:7px}
+@media (max-width: 760px){
+  .sb{position:fixed;left:0;top:0;bottom:0;width:232px;z-index:60;transform:translateX(-105%);transition:transform .22s ease;box-shadow:2px 0 14px rgba(0,0,0,0.12)}
+  body.menu-open .sb{transform:translateX(0)}
+  body.menu-open .sb-overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:50}
+  .topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;background:#ffffff;padding:10px 4px;border-bottom:1px solid #e8e8e4;margin:-12px -2px 12px}
+  .main{padding:12px 14px}
+  .fr{grid-template-columns:1fr}
+  .prof-grid{grid-template-columns:1fr}
+  .md{max-width:94vw;max-height:88vh;overflow-y:auto}
+  .pt{font-size:16px;margin-bottom:12px}
+}
 </style>
 </head>
 <body>
 <div class="app">
+<div class="sb-overlay" onclick="toggleMenu(false)"></div>
 <div class="sb">
-  <div class="sb-logo">🏗BuildTrack<span>Construction Manager</span></div>
+  <div class="sb-logo"><img id="sb-logo-img" style="display:none" alt=""><span id="sb-brand-name">RAIYVINA</span><span>BuildTrack · Construction Manager</span></div>
   <button class="ni active" onclick="nav('dashboard',this)">Dashboard</button>
   <button class="ni" onclick="nav('roster',this)">Daily roster</button>
   <button class="ni" onclick="nav('worksites',this)">Worksites</button>
@@ -148,6 +167,7 @@ tr:hover td{background:#f0f4ff}
   <button class="ni" onclick="nav('company',this)">Company</button>
 </div>
 <div class="main">
+<div class="topbar"><button class="menu-btn" onclick="toggleMenu()">☰</button><span class="tb-brand"><img id="tb-logo" style="display:none" alt=""><span id="tb-brand-name">RAIYVINA</span></span></div>
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
@@ -316,6 +336,7 @@ tr:hover td{background:#f0f4ff}
     <div class="tab" onclick="fSales('outstanding',this)">Outstanding</div>
     <div class="tab" onclick="fSales('paid',this)">Fully paid</div>
   </div>
+  <div id="sales-internal" style="margin-bottom:14px"></div>
   <div id="sales-list"></div>
 </div>
 
@@ -1067,6 +1088,7 @@ function nav(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
   else document.querySelectorAll('.ni').forEach(n=>{if(n.textContent.trim().toLowerCase().startsWith(id.slice(0,5)))n.classList.add('active')});
+  toggleMenu(false);
   if(id==='dashboard')renderDash();
   if(id==='company')renderCompany();
   if(id==='roster'){if(!document.getElementById('roster-date').value)document.getElementById('roster-date').value=today();renderRoster();}
@@ -1176,7 +1198,7 @@ function renderDash(){
   const machActive=(D.machinery||[]).filter(m=>m.status==='active').length;
   const onToday=D.roster.filter(r=>r.date===today()).length;
   const totalOutstanding=D.sales.reduce((a,s)=>a+saleOutstanding(s),0);
-  const totalSalesRev=D.sales.reduce((a,s)=>a+salePaid(s),0);
+  const totalSalesRev=D.sales.reduce((a,s)=>a+salePaid(s),0)+internalSalesTotal();
   document.getElementById('dash-cards').innerHTML=`
     <div class="card"><div class="cl">Active sites</div><div class="cv">${active.length}</div></div>
     <div class="card"><div class="cl">On site today</div><div class="cv">${onToday}</div></div>
@@ -1206,6 +1228,16 @@ function renderDash(){
 // What a client owes right now: value of completed works minus every
 // payment received. Older completed sites without per-work records
 // count their whole agreed amount as done.
+// Warehouse settlements ARE internal sales: the material business
+// sold those materials to the construction side of the company.
+function allMatSettlements(){
+  const out=[];
+  (D.sites||[]).forEach(s=>(s.matSettlements||[]).forEach((m,idx)=>{
+    out.push({siteId:s.id,siteName:s.name,idx,date:m.date||'',amount:m.amount||0,note:m.note||''});
+  }));
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+function internalSalesTotal(){return allMatSettlements().reduce((a,m)=>a+m.amount,0);}
 function clientDue(s){
   if(s.type==='own'||s.type==='pending')return{dueNow:0,doneValue:0,received:0,agreed:0,remaining:0,doneCount:0};
   const st=siteStats(s);
@@ -1228,6 +1260,19 @@ function clientDue(s){
   return{doneCount:doneWorks.length||(s.status==='done'&&doneValue>0?1:0),doneValue,received,agreed,
     dueNow:Math.max(0,Math.round((doneValue-received)*100)/100),
     remaining:Math.max(0,Math.round((agreed-received)*100)/100)};
+}
+function renderInternalSales(){
+  const el=document.getElementById('sales-internal');if(!el)return;
+  const list=allMatSettlements();
+  if(!list.length){el.innerHTML='';return;}
+  const total=list.reduce((a,m)=>a+m.amount,0);
+  const rows=list.map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
+    <span style="flex:1"><b>${m.siteName}</b> <span class="badge" style="background:#E8F4FD;color:#185FA5;font-size:9px">INTERNAL</span><div style="font-size:10px;color:#6b6b6b">${m.date}${m.note?' · '+m.note:''}</div></span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><b>${fmt(m.amount)}</b><button class="btn bs" style="font-size:10px" onclick="openDetail(${m.siteId})">Open site</button></span>
+  </div>`);
+  el.innerHTML=`<div class="sec"><div class="sh"><span class="st">Internal sales — worksite material settlements · ${fmt(total)}</span></div>
+    <div style="font-size:11px;color:#6b6b6b;margin-bottom:6px">Materials your own worksites settled with the material business. Recorded automatically from settlements — always fully paid.</div>
+    ${limitLog(rows,'intsales','renderInternalSales()',8)}</div>`;
 }
 function clientReceivables(){
   return D.sites.map(s=>({s,d:clientDue(s)})).filter(x=>x.d.dueNow>0)
@@ -2088,6 +2133,22 @@ function saveSalaryBatch(){
 }
 var _bizInfo={name:'',addr:'',phone:''};
 var _docCtx={type:'site',id:null};
+function toggleMenu(force){
+  const b=document.body;
+  if(force===false)b.classList.remove('menu-open');
+  else if(force===true)b.classList.add('menu-open');
+  else b.classList.toggle('menu-open');
+}
+function applyBranding(){
+  const c=D.company||{};
+  const name=(c.name||'RAIYVINA').toUpperCase();
+  const n1=document.getElementById('sb-brand-name');if(n1)n1.textContent=name;
+  const n2=document.getElementById('tb-brand-name');if(n2)n2.textContent=name;
+  ['sb-logo-img','tb-logo'].forEach(id=>{
+    const img=document.getElementById(id);if(!img)return;
+    if(c.logoImg){img.src=c.logoImg;img.style.display='';}else img.style.display='none';
+  });
+}
 function renderCompany(){
   const c=D.company||{};
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
@@ -2116,6 +2177,7 @@ function coImg(input,prop,prevId){
         if(url.length>48000){alert('That picture is too detailed to store — try a smaller or simpler image.');return;}
         D.company=D.company||{};D.company[prop]=url;
         const img=document.getElementById(prevId);if(img){img.src=url;img.style.display='';}
+        applyBranding();
       }catch(err){alert('Could not read that image on this device.');}
     };
     im.src=rd.result;
@@ -2128,6 +2190,7 @@ function saveCompany(){
   D.company.name=g('co-name');D.company.reg=g('co-reg');D.company.phone=g('co-phone');D.company.addr=g('co-addr');
   D.company.accNo=g('co-accno');D.company.accName=g('co-accname');D.company.signName=g('co-signname');D.company.gst=g('co-gst');
   GS.save('settings');
+  applyBranding();
   alert('Company details saved.');
 }
 function openDocGen(){
@@ -2627,12 +2690,15 @@ function renderSales(){
   const totalRev=D.sales.reduce((a,s)=>a+salePaid(s),0);
   const totalOut=D.sales.reduce((a,s)=>a+saleOutstanding(s),0);
   const totalGross=D.sales.reduce((a,s)=>a+saleTotal(s),0);
+  const internal=internalSalesTotal();
   document.getElementById('sales-cards').innerHTML=`
     <div class="card"><div class="cl">Total sales</div><div class="cv">${D.sales.length}</div></div>
     <div class="card"><div class="cl">Gross value</div><div class="cv" style="font-size:13px">${fmt(totalGross)}</div></div>
-    <div class="card"><div class="cl">Collected</div><div class="cv g" style="font-size:13px">${fmt(totalRev)}</div></div>
+    <div class="card"><div class="cl">Collected (external)</div><div class="cv g" style="font-size:13px">${fmt(totalRev)}</div></div>
+    <div class="card"><div class="cl">Internal (worksites)</div><div class="cv g" style="font-size:13px">${fmt(internal)}</div></div>
     <div class="card"><div class="cl">Outstanding</div><div class="cv ${totalOut>0?'am':''}" style="font-size:13px">${fmt(totalOut)}</div></div>
   `;
+  renderInternalSales();
   if(!sales.length){document.getElementById('sales-list').innerHTML='<div class="empty">No sales yet. Use "New sale" to record one.</div>';return}
   document.getElementById('sales-list').innerHTML=sales.map(s=>{
     const tot=saleTotal(s),paid=salePaid(s),out=saleOutstanding(s),pct=tot>0?Math.round(paid/tot*100):100;
@@ -2827,7 +2893,7 @@ function renderFinance(){
   D.sites.forEach(s=>{const st=siteStats(s);if(s.type!=='own'){tLC+=st.lCost;tMC+=st.totalMatCost;tLP+=st.totalQuote;tMP+=st.totalProfit;}});
   const fgn=D.employees.filter(e=>e.empType==='foreign');
   const totalPayroll=D.employees.reduce((a,e)=>a+e.monthly+(e.empType==='foreign'?FOOD_MONTHLY:0),0);
-  const totalSalesRev=D.sales.reduce((a,s)=>a+salePaid(s),0);
+  const totalSalesRev=D.sales.reduce((a,s)=>a+salePaid(s),0)+internalSalesTotal();
   const totalSalesOut=D.sales.reduce((a,s)=>a+saleOutstanding(s),0);
   const totalSalesGross=D.sales.reduce((a,s)=>a+saleTotal(s),0);
   document.getElementById('fin-cards').innerHTML=`
@@ -3619,6 +3685,7 @@ async function gsBannerTest() {
     statusEl.textContent = '✓ Connected! Loading data…'; statusEl.style.color = '#0F6E56';
     var loaded = await GS.loadAll();
     renderDash();
+    applyBranding();
     if (loaded) {
       document.getElementById('gs-banner').style.background = '#E1F5EE';
       document.getElementById('gs-banner').style.borderColor = '#0F6E56';
@@ -4568,6 +4635,7 @@ function doSettle(){
   s.matSettlements=s.matSettlements||[];
   s.matSettlements.push({date:document.getElementById('settle-date').value||today(),amount:st.unsettledAmt,note:document.getElementById('settle-note').value});
   closeModal('modal-settle');
+  try{renderInternalSales();}catch(e){}
   GS.save('sites');
   renderSettlements();
 }
@@ -4612,6 +4680,7 @@ function deleteSettlement(siteId,idx){
   s.matSettlements.splice(idx,1);
   GS.save('sites');
   renderSettlements();
+  try{renderInternalSales();}catch(e){}
 }
 
 
@@ -4654,6 +4723,7 @@ function saveDayWorker(){
     var inp=document.getElementById('gs-url-inline');
     if(saved && inp && !inp.value){ inp.value=saved; gsBannerTest(); }
   }catch(e){}
+  try{ applyBranding(); }catch(e){}
 })();
 </script>
 <div class="mo" id="modal-ot"><div class="md" style="max-width:420px">
