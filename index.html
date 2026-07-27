@@ -25,8 +25,11 @@
 [data-theme="business"]{--bg:#212121;--bg2:#1b1b1b;--bg3:#262626;--line:#3a3a3a;--line2:#2c2c2c;--inp:#474747;--tx:#e5e5e5;--mut:#9e9e9e;--pri:#3d6ea5;--pri-bg:#16293d;--dgr:#ef5350;--dgr-bg:#3a2020;--inf:#8fa3ad;--inf-bg:#26323a;--amb:#eab308;--amb-bg:#332b10;--amb-line:#4d411a;--amb-tx:#eab308}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--tx);background:var(--bg);font-size:13px}
+/* Legacy token names used by older styles — aliased to the theme
+   tokens above. (The old --bg/--bg2 self-definitions created cyclic,
+   invalid variables that froze background theming.) */
 :root{
-  --bg:var(--bg);--bg2:var(--bg2);--text:var(--tx);--text2:var(--mut);
+  --text:var(--tx);--text2:var(--mut);
   --border:var(--line);--border2:var(--inp);--radius:7px;--radius-lg:10px;
 }
 .app{display:flex;height:100vh;min-height:600px}
