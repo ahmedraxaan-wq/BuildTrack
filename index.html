@@ -1695,13 +1695,13 @@ function rerenderDetailExt(){const s=D.sites.find(x=>x.id===D.activeSiteId);if(s
 function renderDetailExtPurchases(s){
   const el=document.getElementById('d-extpurch');if(!el)return;
   const list=(s.log||[]).map((e,idx)=>({e,idx})).filter(x=>isExtPurchase(x.e))
-    .map(x=>({idx:x.idx,date:x.e.date||'',desc:x.e.desc||'',vendor:x.e.vendor||'',amount:extAmount(x.e),credit:!!x.e.credit,paid:!!x.e.paid,paidDate:x.e.paidDate||'',vpId:x.e.vpId||null}))
+    .map(x=>({idx:x.idx,date:x.e.date||'',desc:x.e.desc||'',vendor:x.e.vendor||'',amount:extAmount(x.e),credit:!!x.e.credit,paid:!!x.e.paid,paidDate:x.e.paidDate||'',vpId:x.e.vpId||null,payMethod:x.e.payMethod||'',payHolder:x.e.payHolder||''}))
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   if(!list.length){el.innerHTML='';return;}
   const total=list.reduce((a,p)=>a+p.amount,0);
   const owed=list.filter(p=>p.credit&&!p.paid).reduce((a,p)=>a+p.amount,0);
   const rows=list.map(p=>{
-    const status=p.credit?(p.paid?`<span class="badge ba" style="font-size:9px">PAID${p.paidDate?' '+p.paidDate:''}</span>`:`<span class="badge bd2c" style="font-size:9px;color:#A32D2D">ON CREDIT</span>`):`<span class="badge bd2" style="font-size:9px">CASH</span>`;
+    const status=extPayBadge(p);
     return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
       <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:#6b6b6b">${p.date}</div></span>
       <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:#0F6E56" onclick="markVendorPaid(${s.id},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:#A32D2D" onclick="deleteExtPurchase(${s.id},${p.idx},'${p.vpId||''}')">✕</button></span>
@@ -4296,11 +4296,22 @@ function scrollToExtPurchases(){
   if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 // ── External / local purchases: every ad-hoc buy across all sites ──
+// Payment badge for an external purchase: the ACTUAL method used —
+// BANK or CASH (with holder) — never a hard-coded label.
+function extPayBadge(p){
+  if(p.credit&&!p.paid)return`<span class="badge bd2c" style="font-size:9px;color:#A32D2D">ON CREDIT</span>`;
+  const m=(p.payMethod||'').toLowerCase();
+  const mTag=m==='bank'?'BANK':(m==='cash'?('CASH'+(p.payHolder?' · '+p.payHolder:'')):'');
+  if(p.credit&&p.paid)return`<span class="badge ba" style="font-size:9px">PAID${mTag?' · '+mTag:''}${p.paidDate?' '+p.paidDate:''}</span>`;
+  if(m==='bank')return`<span class="badge" style="background:#E8F4FD;color:#185FA5;font-size:9px">BANK</span>`;
+  if(m==='cash')return`<span class="badge bd2" style="font-size:9px">CASH${p.payHolder?' · '+p.payHolder:''}</span>`;
+  return`<span class="badge bd2" style="font-size:9px">PAID</span>`;
+}
 function allExtPurchases(){
   const out=[];
   (D.sites||[]).forEach(s=>(s.log||[]).forEach((e,idx)=>{
     if(!isExtPurchase(e))return;
-    out.push({siteId:s.id,siteName:s.name,idx,date:e.date||'',desc:e.desc||'',vendor:e.vendor||'',vendorId:e.vendorId!=null?e.vendorId:null,amount:extAmount(e),credit:!!e.credit,paid:!!e.paid,paidDate:e.paidDate||'',vpId:e.vpId||null});
+    out.push({siteId:s.id,siteName:s.name,idx,date:e.date||'',desc:e.desc||'',vendor:e.vendor||'',vendorId:e.vendorId!=null?e.vendorId:null,amount:extAmount(e),credit:!!e.credit,paid:!!e.paid,paidDate:e.paidDate||'',vpId:e.vpId||null,payMethod:e.payMethod||'',payHolder:e.payHolder||''});
   }));
   return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
 }
@@ -4330,7 +4341,7 @@ function renderExtPurchases(){
   if(btn)btn.innerHTML='🧾 External purchases ('+list.length+')'+(owed>0?' <span style="color:#A32D2D;font-weight:600">· '+fmt(owed)+' owed</span>':'');
   if(!list.length){el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases</span></div><div style="font-size:11px;color:#6b6b6b;padding:6px 0">No external purchases yet. Log one from a worksite: Log → Material → Bought externally.</div></div>`;return;}
   const rows=list.map(p=>{
-    const status=p.credit?(p.paid?`<span class="badge ba" style="font-size:9px">PAID${p.paidDate?' '+p.paidDate:''}</span>`:`<span class="badge bd2c" style="font-size:9px;color:#A32D2D">ON CREDIT</span>`):`<span class="badge bd2" style="font-size:9px">CASH</span>`;
+    const status=extPayBadge(p);
     return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0ee;font-size:12px">
       <span style="flex:1"><b>${p.desc||'External purchase'}</b>${p.vendor?' — '+p.vendor:''}<div style="font-size:10px;color:#6b6b6b">${p.date} · ${p.siteName}</div></span>
       <span style="display:inline-flex;align-items:center;gap:8px">${status}<b>${fmt(p.amount)}</b>${p.credit&&!p.paid&&p.vpId?`<button class="btn bs" style="font-size:10px;color:#0F6E56" onclick="markVendorPaid(${p.siteId},'${p.vpId}')">✓ Paid</button>`:''}<button class="btn bs" style="font-size:10px;color:#A32D2D" onclick="deleteExtPurchase(${p.siteId},${p.idx},'${p.vpId||''}')">✕</button></span>
