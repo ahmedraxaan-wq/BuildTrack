@@ -293,7 +293,7 @@ tr:hover td{background:var(--bg3)}
   <div class="prof-grid" id="d-profit-grid"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
     <div class="sec">
-      <div class="sh"><span class="st">Materials on site</span><button class="btn bs" onclick="openLogModal('material')">+Add</button></div>
+      <div class="sh"><span class="st">Materials on site</span><span style="display:inline-flex;gap:6px"><button class="btn bs" id="btn-usedall" onclick="consumeAllMats()" style="font-size:10px">✔ All used up</button><button class="btn bs" onclick="openLogModal('material')">+Add</button></span></div>
       <div id="d-sitestock"></div>
     </div>
     <div class="sec">
@@ -639,6 +639,7 @@ tr:hover td{background:var(--bg3)}
         <option value="external">Purchased externally</option>
       </select>
     </div>
+    <div class="fg"><label>For which work</label><select id="log-mwork"></select><div style="font-size:10px;color:var(--mut);margin-top:3px">Ties these materials to the work they are for, so each work keeps its own record.</div></div>
     <div id="lf-mat-wh">
       <div class="fg"><label>Material</label><select id="log-mkey" onchange="updateMatAvail()"></select></div>
       <div class="fg"><label>Quantity <span id="log-munit" style="font-weight:400;text-transform:none"></span></label><input id="log-mqty" type="number" placeholder="0" oninput="updateMatAvail()"></div>
@@ -669,6 +670,14 @@ tr:hover td{background:var(--bg3)}
 </div></div>
 
 <!-- RETURN STOCK -->
+<div class="mo" id="modal-consume"><div class="md" style="max-width:420px">
+  <div class="mt" id="cm-title">Mark materials as used up</div>
+  <div style="font-size:11px;color:var(--mut);margin-bottom:8px">They leave the on-site list and are filed under the work they were used for. Nothing returns to the warehouse; their cost stays counted on this site.</div>
+  <div id="cm-list" style="font-size:11px;white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:9px 12px;margin-bottom:10px"></div>
+  <div id="cm-warn" style="display:none;font-size:11px;color:var(--amb-tx);background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:8px;padding:8px 12px;margin-bottom:10px"></div>
+  <div class="fg"><label>Used for which work</label><select id="cm-work"></select></div>
+  <div class="ma"><button class="btn" onclick="closeModal('modal-consume')">Cancel</button><button class="btn bp" onclick="saveConsume()">✔ Mark used up</button></div>
+</div></div>
 <div class="mo" id="modal-return"><div class="md">
   <div class="mt">Return materials to warehouse</div>
   <div class="nb">Items returned will be added back to warehouse stock.</div>
@@ -1073,6 +1082,37 @@ function isWorkingDay(d,empType){if(empType==='foreign'&&isFriday(d))return fals
 // external purchases that way — they must never count as settleable)
 function isExtPurchase(e){return e.type==='local-purchase'||(e.type==='material'&&!e.matKey);}
 function extAmount(e){return e.type==='local-purchase'?(e.amount||0):(e.cost||0);}
+function sitePhases(s){
+  const works=s.works||[];
+  const done=works.filter(w=>(w.status||'active')==='done');
+  const open=works.filter(w=>(w.status||'active')!=='done');
+  if(!done.length||!open.length)return null;   // only meaningful when mixed
+  const boundary=done.map(w=>w.doneDate||'').sort().pop()||'';
+  let cOld=0,cNew=0;
+  (s.log||[]).forEach(e=>{
+    let v=0;
+    if(e.type==='labour'||e.type==='roster-cost'||e.type==='day-worker'||e.type==='overtime')v=e.cost||0;
+    else if(e.type==='material')v=e.cost||0;
+    else if(e.type==='return')v=-(e.cost||0);
+    else if(e.type==='local-purchase')v=e.amount||0;
+    else return;
+    if(boundary&&String(e.date||'')<=boundary)cOld+=v;else cNew+=v;
+  });
+  cOld=Math.round(cOld*100)/100;cNew=Math.round(cNew*100)/100;
+  // Extras follow their linked work's phase (unlinked → finished only when site done)
+  let xOld=0,xNew=0;
+  (s.log||[]).forEach(e=>{
+    if(!e.billable)return;
+    const b=e.billAmount||0;
+    const lw=e.billWorkId?works.find(w=>String(w.id)===String(e.billWorkId)):null;
+    if(lw&&(lw.status||'active')==='done')xOld+=b;else xNew+=b;
+  });
+  const aOld=done.reduce((a,w)=>a+(w.price||0),0)+xOld;
+  const aNew=open.reduce((a,w)=>a+(w.price||0),0)+xNew;
+  return{boundary,doneCount:done.length,openCount:open.length,
+    aOld:Math.round(aOld*100)/100,aNew:Math.round(aNew*100)/100,
+    cOld,cNew,pOld:Math.round((aOld-cOld)*100)/100,pNew:Math.round((aNew-cNew)*100)/100};
+}
 function siteStats(s){
   // Ensure log is always an array even if loaded as JSON string
   if(typeof s.log === 'string'){try{s.log=JSON.parse(s.log);}catch(e){s.log=[];}}
@@ -1121,6 +1161,22 @@ function saleStatus(sale){
   return'partial';
 }
 
+// A site marked Completed that has unfinished works has been reopened
+// for a new phase — correct the stored status instead of showing a
+// badge that contradicts the works list.
+function syncSiteStatus(s){
+  if(!s||s.status!=='done')return false;
+  const works=Array.isArray(s.works)?s.works:[];
+  if(!works.some(w=>(w.status||'active')!=='done'))return false;
+  s.status='active';
+  return true;
+}
+function syncAllSiteStatus(save){
+  let changed=false;
+  (D.sites||[]).forEach(s=>{if(syncSiteStatus(s))changed=true;});
+  if(changed&&save)GS.save('sites');
+  return changed;
+}
 function getBadge(s){
   if(s.status==='done')return'<span class="badge bd2">Completed</span>';
   if(s.type==='pending')return'<span class="badge bpe">Pending quote</span>';
@@ -1638,6 +1694,7 @@ function quickAlloc(empId,date){
 // ─── WORKSITES ───
 function fSites(f,el){D.siteFilter=f;document.querySelectorAll('#page-worksites .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderSites();}
 function renderSites(){
+  syncAllSiteStatus(true);
   let sites=D.sites;const f=D.siteFilter;
   if(f==='scheduled')sites=sites.filter(s=>s.status==='scheduled');
   else if(f==='active')sites=sites.filter(s=>s.status==='active'&&s.type!=='own');
@@ -1678,6 +1735,10 @@ function openDetail(id){
   document.getElementById('page-site-detail').classList.add('active');
 }
 function renderDetailProfit(s){
+  if(syncSiteStatus(s)){
+    GS.save('sites');
+    const b=document.getElementById('d-badge');if(b)b.innerHTML=getBadge(s);
+  }
   const st=siteStats(s);const isOwn=s.type==='own';
   const works=s.works||[];
   const totalQuote=works.reduce((a,w)=>a+w.price,0);
@@ -1707,7 +1768,7 @@ function renderDetailProfit(s){
         ${isOwn?'':`<button class="btn bs" onclick="openDocGen()" style="font-size:11px">📄 Quote / Invoice</button><button class="btn bs" onclick="openAddWork()" style="font-size:11px">+Add work</button>`}
       </div>
       ${worksHtml}
-      ${works.length?`<div class="prof-total" style="margin-top:8px"><span>Total agreed</span><span>${fmt(totalQuote)}</span></div>`:''}
+      ${works.length?`<div class="prof-total" style="margin-top:8px"><span>Total agreed${sitePhases(s)?' — all phases':''}</span><span>${fmt(totalQuote)}</span></div>`:''}
       ${st.extrasBill>0?`<div class="prof-total" style="margin-top:2px;color:var(--amb-tx)"><span>+ Billable extras (outside quote)</span><span>${fmt(st.extrasBill)}</span></div>`:''}
     </div>
     <div class="prof-box">
@@ -1718,8 +1779,14 @@ function renderDetailProfit(s){
       <div class="prof-total"><span>Total cost</span><span class="r">${fmt(st.totalCost)}</span></div>
       ${settleBtn}
     </div>
+    ${(()=>{const ph=isOwn?null:sitePhases(s);if(!ph)return'';
+      return`<div class="prof-box" style="grid-column:1/-1;border:1px solid var(--inf-line);background:var(--inf-bg)">
+      <div class="prof-label">Finished phase vs new phase <span style="font-weight:400;text-transform:none">(costs split at ${ph.boundary||'completion'})</span></div>
+      <div class="prof-row sub"><span><b>Finished:</b> ${ph.doneCount} completed work${ph.doneCount>1?'s':''} — agreed ${fmt(ph.aOld)} · costs ${fmt(ph.cOld)}</span><span style="font-weight:600;color:${ph.pOld>=0?'var(--pri)':'var(--dgr)'}">${fmt(ph.pOld)} profit</span></div>
+      <div class="prof-row sub"><span><b>New phase:</b> ${ph.openCount} work${ph.openCount>1?'s':''} — agreed ${fmt(ph.aNew)} · costs so far ${fmt(ph.cNew)}</span><span style="font-weight:600">${fmt(ph.pNew)} projected</span></div>
+      </div>`;})()}
     <div class="prof-box">
-      <div class="prof-label">${isOwn?'Summary':'Profit'}</div>
+      <div class="prof-label">${isOwn?'Summary':'Profit'}${!isOwn&&sitePhases(s)?' <span style="font-weight:400;text-transform:none">— whole site, all phases</span>':''}</div>
       ${isOwn
         ?`<div class="prof-row sub"><span>Total cost</span><span class="r">${fmt(st.totalCost)}</span></div>`
         :`<div class="prof-row sub"><span>Agreed total</span><span>${fmt(totalQuote)}</span></div>
@@ -1830,11 +1897,36 @@ function renderDetailExtPurchases(s){
 function renderDetailSiteStock(s){
   const ss=s.ss||{};const keys=Object.keys(ss).filter(k=>ss[k]>0);
   const el=document.getElementById('d-sitestock');
-  if(!keys.length){el.innerHTML='<div class="empty" style="padding:14px">No materials on site</div>';return}
-  el.innerHTML='<div class="dp" style="padding:8px 12px">'+keys.map(k=>{const mat=D.stocks[k];
-    if(!mat)return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px;color:var(--dgr)">Unknown material</div><div style="font-size:10px;color:var(--mut)">${ss[k]} on site — this material no longer exists in stock</div></div></div>`;
-    return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px">${mat.name}</div><div style="font-size:10px;color:var(--mut)">${ss[k]} ${mat.unit}</div></div><button class="btn bs bg2" onclick="openReturn('${k}')">↩Return</button></div>`;
-  }).join('')+'</div>';
+  const wName=id=>{const w=(s.works||[]).find(x=>String(x.id)===String(id));return w?w.desc:'';};
+  const onSite=!keys.length
+    ?'<div class="empty" style="padding:14px">No materials on site</div>'
+    :'<div class="dp" style="padding:8px 12px">'+keys.map(k=>{const mat=D.stocks[k];
+      if(!mat)return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px;color:var(--dgr)">Unknown material</div><div style="font-size:10px;color:var(--mut)">${ss[k]} on site — this material no longer exists in stock</div></div></div>`;
+      const tie=wName((s.ssWork||{})[k]);
+      return`<div class="sale-item-row"><div style="flex:1"><div style="font-weight:500;font-size:12px">${mat.name}</div><div style="font-size:10px;color:var(--mut)">${ss[k]} ${mat.unit}${tie?' · for <span style="color:var(--inf)">'+tie+'</span>':''}</div></div><button class="btn bs" style="color:var(--ok-tx)" onclick="consumeMat('${k}')">✔Used</button><button class="btn bs bg2" onclick="openReturn('${k}')">↩Return</button></div>`;
+    }).join('')+'</div>';
+
+  // Archive: what has already been used up, under the work it served
+  const used=(s.log||[]).filter(e=>e.type==='used');
+  let archive='';
+  if(used.length){
+    const groups={};
+    used.forEach(e=>{
+      const key=e.workId||'';
+      const g=groups[key]=groups[key]||{name:e.workDesc||wName(e.workId)||'Not tied to a work',items:{},date:''};
+      const m=D.stocks[e.matKey]||{name:e.matName||e.matKey,unit:''};
+      const it=g.items[e.matKey]=g.items[e.matKey]||{name:m.name,unit:m.unit,qty:0};
+      it.qty+=e.qty||0;
+      if(String(e.date||'')>g.date)g.date=String(e.date||'');
+    });
+    archive='<div style="margin-top:10px"><div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;margin-bottom:5px">Already used up</div>'
+      +Object.keys(groups).map(k=>{const g=groups[k];
+        return`<div class="dp" style="padding:8px 12px;margin-bottom:6px;background:var(--bg3)">
+          <div style="font-size:11px;font-weight:600">${g.name}<span class="badge bd2" style="font-size:9px;margin-left:6px">used up${g.date?' '+g.date:''}</span></div>
+          <div style="font-size:10px;color:var(--mut);margin-top:3px">${Object.values(g.items).map(i=>i.qty+' '+i.unit+' '+i.name).join(' · ')}</div>
+        </div>`;}).join('')+'</div>';
+  }
+  el.innerHTML=onSite+archive;
 }
 function renderDetailLog(s){
   const logs=[...(s.log||[])].reverse();
@@ -1850,6 +1942,7 @@ function renderDetailLog(s){
   document.getElementById('d-log').innerHTML='<div class="dp">'+limitLog(rows,'sitelog'+s.id,'rerenderDetailLog()',15)+'</div>';
 }
 function logDesc(e){
+  if(e.type==='used'){const m=D.stocks[e.matKey]||{name:e.matKey,unit:''};return`<b>${m.name}</b> — ${e.qty} ${m.unit} used up${e.workDesc?' in '+e.workDesc:''}`;}
   if(e.type==='income'){
     if(e.isAdvance)return`<b>Advance payment: ${fmt(e.advance)}</b> <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
     if(e.unsplit)return`<b>Payment received: ${fmt(e.amount||0)}</b>${e.workName?' — '+e.workName:''} <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
@@ -1887,12 +1980,30 @@ function openLogModal(type){
 }
 function popMatLogSel(){document.getElementById('log-mkey').innerHTML=Object.entries(D.stocks).map(([k,v])=>`<option value="${k}">${v.name} (${v.unit}) — ${v.wQty} in warehouse</option>`).join('');updateMatAvail();}
 function onMatSrc(){
+  fillWorkSelect('log-mwork');
   const wh=document.getElementById('log-msrc').value==='warehouse';
   document.getElementById('lf-mat-wh').style.display=wh?'':'none';
   document.getElementById('lf-mat-ext').style.display=wh?'none':'';
   const hint=document.getElementById('log-mcost-hint');
   if(hint)hint.textContent=wh?'— auto-calculated from sale price, edit if needed':'— enter what you paid the supplier';
   if(wh)updateMatAvail();else{document.getElementById('log-mcost').value='';popVendorSel();onMPaid();}
+}
+// Works available to tie materials to, newest first, with the work
+// currently in progress preselected.
+function workOptions(s,selected){
+  const works=(s&&s.works)||[];
+  const active=works.filter(w=>(w.status||'active')==='active');
+  const pick=selected!==undefined?selected:(active.length?active[active.length-1].id:'');
+  return works.map(w=>{
+    const st=(w.status||'active');
+    const tag=st==='done'?' (completed)':st==='scheduled'?' (scheduled)':' (in progress)';
+    return`<option value="${w.id}"${String(w.id)===String(pick)?' selected':''}>${w.desc}${tag}</option>`;
+  }).join('')+`<option value=""${pick===''?' selected':''}>— not tied to a work —</option>`;
+}
+function fillWorkSelect(id,selected){
+  const el=document.getElementById(id);if(!el)return;
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));
+  el.innerHTML=workOptions(s,selected);
 }
 function onBillToggle(){
   const on=document.getElementById('log-mbill').checked;
@@ -2004,13 +2115,18 @@ function saveLog(){
       if(qty>mat.wQty){alert('Not enough in warehouse!');return}
       mat.wQty-=qty;mat.log.push({date,action:'out-to-site',qty,note:'To: '+s.name});
       s.ss=s.ss||{};s.ss[key]=(s.ss[key]||0)+qty;
+      s.ssWork=s.ssWork||{};
+      const _wsel=document.getElementById('log-mwork');
+      if(_wsel&&_wsel.value)s.ssWork[key]=_wsel.value;
       let mcost=parseFloat(document.getElementById('log-mcost').value)||0;
       if(mcost<=0)mcost=Math.round(qty*(mat.salePrice||0)*100)/100;   // never issue at zero silently
       entry.matKey=key;entry.matName=mat.name;entry.qty=qty;entry.unit=mat.unit;
+      const wsel=document.getElementById('log-mwork');if(wsel&&wsel.value)entry.workId=wsel.value;
       entry.cost=mcost;entry.unitPrice=qty>0?Math.round(mcost/qty*100)/100:0;
     }else{
       entry.type='local-purchase';
       entry.desc=document.getElementById('log-mdesc').value;
+      const wsel2=document.getElementById('log-mwork');if(wsel2&&wsel2.value)entry.workId=wsel2.value;
       entry.amount=parseFloat(document.getElementById('log-mcost').value)||0;
       entry.vendor='';
       const vsel=document.getElementById('log-mvendorsel');
@@ -2089,11 +2205,61 @@ function openEditWork(workId){
   document.getElementById('w-notes').value=w.notes||'';
   openModal('modal-work');
 }
+// Materials USED UP in the work: they leave the site list, but the
+// warehouse gets nothing back and the cost stays counted — different
+// from a Return in both ways.
+// Everything left on site was used up in the finished phase — clearing
+// them one by one is tedious, so offer it in a single action.
+function consumeAllMats(){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s||!s.ss)return;
+  const keys=Object.keys(s.ss).filter(k=>(s.ss[k]||0)>0);
+  if(!keys.length)return;
+  _consumeKeys=keys;
+  openConsume('Mark ALL materials on site as used up',
+    keys.map(k=>{const m=D.stocks[k]||{name:k,unit:''};return '· '+s.ss[k]+' '+m.unit+' '+m.name;}).join('\n'));
+}
+var _consumeKeys=[];
+function openConsume(title,lines){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
+  const st=siteStats(s);
+  document.getElementById('cm-title').textContent=title;
+  document.getElementById('cm-list').textContent=lines;
+  document.getElementById('cm-warn').style.display=st.unsettledAmt>0?'':'none';
+  document.getElementById('cm-warn').textContent='⚠ '+fmt(st.unsettledAmt)+' of warehouse materials are still unsettled — their cost stays on this site.';
+  // Default: the work these materials most likely served — the last one
+  // completed, otherwise whatever is in progress
+  const done=(s.works||[]).filter(w=>(w.status||'active')==='done');
+  const def=done.length?done[done.length-1].id:undefined;
+  fillWorkSelect('cm-work',def);
+  openModal('modal-consume');
+}
+function saveConsume(){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
+  const wid=document.getElementById('cm-work').value;
+  const w=(s.works||[]).find(x=>String(x.id)===String(wid));
+  _consumeKeys.forEach(k=>{
+    const qty=(s.ss||{})[k]||0;if(!(qty>0))return;
+    s.log.push({type:'used',date:today(),matKey:k,qty,workId:wid||'',workDesc:w?w.desc:''});
+    delete s.ss[k];
+    if(s.ssWork)delete s.ssWork[k];
+  });
+  _consumeKeys=[];
+  closeModal('modal-consume');
+  GS.save('sites');
+  renderDetailSiteStock(s);renderDetailLog(s);renderDetailProfit(s);
+}
+function consumeMat(key){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s||!s.ss)return;
+  const qty=s.ss[key]||0;if(!(qty>0))return;
+  const mat=D.stocks[key]||{name:key,unit:''};
+  _consumeKeys=[key];
+  openConsume('Mark '+mat.name+' as used up','· '+qty+' '+mat.unit+' '+mat.name);
+}
 function startWork(workId){
   const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
   const w=(s.works||[]).find(x=>String(x.id)===String(workId));if(!w)return;
   w.status='active';w.startDate=today();
-  if(s.status==='scheduled'){
+  if(s.status==='scheduled'||s.status==='done'){
     s.status='active';s.expectedStart=s.expectedStart||today();
     const b=document.getElementById('d-badge');if(b)b.innerHTML=getBadge(s);
     const bs=document.getElementById('btn-start');if(bs)bs.style.display='none';
@@ -2135,6 +2301,7 @@ function saveWork(){
     // New works are quoted first — they start as Scheduled and get
     // their own ▶Start when the client gives the go-ahead
     s.works.push({id:Date.now(),desc,price,date,notes,status:'scheduled'});
+    if(s.status==='done')s.status='scheduled';   // new phase reopens the site
   }
   // Keep lq updated as sum of all works
   s.lq=s.works.reduce((a,w)=>a+w.price,0);
