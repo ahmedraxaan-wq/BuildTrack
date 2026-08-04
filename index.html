@@ -1896,6 +1896,39 @@ function renderDetailExtPurchases(s){
   el.innerHTML=`<div class="sec"><div class="sh"><span class="st">External purchases — ${fmt(total)}${owed>0?` · <span style="color:var(--dgr)">${fmt(owed)} owed</span>`:''}</span></div>
     ${limitLog(rows,'siteext'+s.id,'rerenderDetailExt()',6)}</div>`;
 }
+// Retried saves can append the same used-up records more than once.
+// These are pure history (no cost effect), so they can be repaired.
+function usedKey(e){return [e.workId||'',e.matKey||'',e.qty||0,e.date||''].join('|');}
+function usedDuplicates(s){
+  const seen={},dups=[];
+  (s.log||[]).forEach(e=>{if(e.type!=='used')return;const k=usedKey(e);if(seen[k])dups.push(e);else seen[k]=1;});
+  return dups;
+}
+function cleanUsedDuplicates(){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
+  const dups=usedDuplicates(s);
+  if(!dups.length)return;
+  if(!confirm('Remove '+dups.length+' duplicated used-up record'+(dups.length>1?'s':'')+'?\n\nOne copy of each is kept. Costs and quantities on site are not affected — these are history records only.'))return;
+  const seen={};
+  s.log=(s.log||[]).filter(e=>{
+    if(e.type!=='used')return true;
+    const k=usedKey(e);
+    if(seen[k])return false;
+    seen[k]=1;return true;
+  });
+  GS.save('sites');
+  renderDetailSiteStock(s);renderDetailLog(s);
+}
+function removeUsedGroup(workId){
+  const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
+  const hits=(s.log||[]).filter(e=>e.type==='used'&&String(e.workId||'')===String(workId||''));
+  if(!hits.length)return;
+  const name=hits[0].workDesc||'this work';
+  if(!confirm('Delete all '+hits.length+' used-up record'+(hits.length>1?'s':'')+' filed under "'+name+'"?\n\nNothing returns to the warehouse and no cost changes — you are only clearing the history entries.'))return;
+  s.log=(s.log||[]).filter(e=>!(e.type==='used'&&String(e.workId||'')===String(workId||'')));
+  GS.save('sites');
+  renderDetailSiteStock(s);renderDetailLog(s);
+}
 function renderDetailSiteStock(s){
   const ss=s.ss||{};const keys=Object.keys(ss).filter(k=>ss[k]>0);
   const el=document.getElementById('d-sitestock');
@@ -1921,10 +1954,15 @@ function renderDetailSiteStock(s){
       it.qty+=e.qty||0;
       if(String(e.date||'')>g.date)g.date=String(e.date||'');
     });
+    const dups=usedDuplicates(s);
     archive='<div style="margin-top:10px"><div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;margin-bottom:5px">Already used up</div>'
+      +(dups.length?`<div style="background:var(--amb-bg);border:1px solid var(--amb-line);color:var(--amb-tx);border-radius:8px;padding:9px 12px;font-size:11px;margin-bottom:6px">⚠ ${dups.length} duplicated record${dups.length>1?'s':''} found — the totals below are inflated. This happens when a save is retried. Costs are not affected. <button class="btn bs" style="font-size:10px;margin-left:6px" onclick="cleanUsedDuplicates()">Clean up duplicates</button></div>`:'')
       +Object.keys(groups).map(k=>{const g=groups[k];
         return`<div class="dp" style="padding:8px 12px;margin-bottom:6px;background:var(--bg3)">
-          <div style="font-size:11px;font-weight:600">${g.name}<span class="badge bd2" style="font-size:9px;margin-left:6px">used up${g.date?' '+g.date:''}</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div style="font-size:11px;font-weight:600;flex:1">${g.name}<span class="badge bd2" style="font-size:9px;margin-left:6px">used up${g.date?' '+g.date:''}</span></div>
+            <button class="btn bs" style="font-size:10px" onclick="removeUsedGroup('${k}')">✕</button>
+          </div>
           <div style="font-size:10px;color:var(--mut);margin-top:3px">${Object.values(g.items).map(i=>i.qty+' '+i.unit+' '+i.name).join(' · ')}</div>
         </div>`;}).join('')+'</div>';
   }
@@ -2245,14 +2283,24 @@ function saveConsume(){
   const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
   const wid=document.getElementById('cm-work').value;
   const w=(s.works||[]).find(x=>String(x.id)===String(wid));
+  let skipped=0;
   _consumeKeys.forEach(k=>{
     const qty=(s.ss||{})[k]||0;if(!(qty>0))return;
-    s.log.push({type:'used',date:today(),matKey:k,qty,workId:wid||'',workDesc:w?w.desc:''});
+    const entry={type:'used',date:today(),matKey:k,qty,workId:wid||'',workDesc:w?w.desc:''};
+    // Never file an identical record twice — that is what inflated the
+    // archive when saves were retried
+    if((s.log||[]).some(e=>e.type==='used'&&usedKey(e)===usedKey(entry))){
+      skipped++;delete s.ss[k];
+      if(s.ssWork&&typeof s.ssWork==='object')delete s.ssWork[k];
+      return;
+    }
+    s.log.push(entry);
     delete s.ss[k];
     if(s.ssWork&&typeof s.ssWork==='object')delete s.ssWork[k];
   });
   _consumeKeys=[];
   closeModal('modal-consume');
+  if(skipped)alert(skipped+' material'+(skipped>1?'s were':' was')+' already filed under this work today — cleared from the site without duplicating the record.');
   GS.save('sites');
   renderDetailSiteStock(s);renderDetailLog(s);renderDetailProfit(s);
 }
