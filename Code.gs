@@ -58,12 +58,13 @@ function route(p) {
   try {
     var authOn = !!(PASSWORD && PASSWORD.length);
     if (p.action === 'ping') {
-      out = { ok: true, v: 4, authRequired: authOn, authOk: !authOn || p.t === authToken_() };
+      out = { ok: true, v: 5, authRequired: authOn, authOk: !authOn || p.t === authToken_() };
     } else if (authOn && p.t !== authToken_()) {
-      out = { ok: false, error: 'auth', v: 4 };
+      out = { ok: false, error: 'auth', v: 5 };
     }
-    else if (p.action === 'loadAll') out = { ok: true, v: 4, data: loadAll() };
+    else if (p.action === 'loadAll') out = { ok: true, v: 5, data: loadAll() };
     else if (p.action === 'save')    out = saveTable(p.table, p.data);
+    else if (p.action === 'saveMany') out = saveMany(p.tables);
     else                             out = { ok: false, error: 'unknown action' };
   } catch (err) {
     out = { ok: false, error: String(err) };
@@ -114,6 +115,41 @@ function loadAll() {
 // ── Writing ────────────────────────────────────────────────────────
 function saveTable(table, json) {
   if (TABLES.indexOf(table) === -1) return { ok: false, error: 'unknown table ' + table };
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    return writeTable_(book(), table, json);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Save any number of tables in ONE call: one lock, one spreadsheet
+// open, one execution — far faster than a request per table.
+function saveMany(tablesJson) {
+  var tables = JSON.parse(tablesJson || '{}');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  var results = {};
+  try {
+    var ss = book();
+    Object.keys(tables).forEach(function (t) {
+      try {
+        results[t] = writeTable_(ss, t, tables[t]);
+      } catch (err) {
+        results[t] = { ok: false, error: String(err) };
+      }
+    });
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+  var allOk = Object.keys(results).every(function (t) { return results[t] && results[t].ok; });
+  return { ok: allOk, v: 5, results: results };
+}
+
+function writeTable_(ss, table, json) {
+  if (TABLES.indexOf(table) === -1) return { ok: false, error: 'unknown table ' + table };
   var payload = JSON.parse(json || 'null');
   if (payload === null) return { ok: false, error: 'no data' };
 
@@ -130,11 +166,7 @@ function saveTable(table, json) {
     });
   }
 
-  // One writer at a time — protects against two tabs saving at once
-  var lock = LockService.getScriptLock();
-  lock.waitLock(20000);
-  try {
-    var ss = book();
+  {
     var sh = ss.getSheetByName(table) || ss.insertSheet(table);
 
     // Union of every field across every row → header list
@@ -142,7 +174,7 @@ function saveTable(table, json) {
     rows.forEach(function (r) {
       for (var f in r) if (headers.indexOf(f) === -1) headers.push(f);
     });
-    if (!headers.length) { sh.clearContents(); return { ok: true, v: 4, rows: 0 }; }
+    if (!headers.length) { sh.clearContents(); return { ok: true, v: 5, rows: 0 }; }
 
     var grid = [headers];
     rows.forEach(function (r) {
@@ -156,8 +188,6 @@ function saveTable(table, json) {
 
     sh.clearContents();
     sh.getRange(1, 1, grid.length, headers.length).setValues(grid);
-    return { ok: true, v: 4, rows: rows.length };
-  } finally {
-    lock.releaseLock();
+    return { ok: true, v: 5, rows: rows.length };
   }
 }

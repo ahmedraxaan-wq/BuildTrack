@@ -1118,6 +1118,8 @@ function siteStats(s){
   if(typeof s.log === 'string'){try{s.log=JSON.parse(s.log);}catch(e){s.log=[];}}
   if(!Array.isArray(s.log))s.log=[];
   if(typeof s.ss === 'string'){try{s.ss=JSON.parse(s.ss);}catch(e){s.ss={};}}
+  if(typeof s.ssWork === 'string'){try{s.ssWork=JSON.parse(s.ssWork);}catch(e){s.ssWork={};}}
+  if(!s.ssWork||typeof s.ssWork!=='object')s.ssWork={};
   if(typeof s.works === 'string'){try{s.works=JSON.parse(s.works);}catch(e){s.works=[];}}
   if(!Array.isArray(s.works))s.works=[];
   if(typeof s.matSettlements === 'string'){try{s.matSettlements=JSON.parse(s.matSettlements);}catch(e){s.matSettlements=[];}}
@@ -1931,7 +1933,7 @@ function renderDetailSiteStock(s){
 function renderDetailLog(s){
   const logs=[...(s.log||[])].reverse();
   if(!logs.length){document.getElementById('d-log').innerHTML='<div class="empty">No entries yet</div>';return}
-  const tl={income:'Income',labour:'Labour',material:'Material',note:'Note','roster-cost':'Roster','return':'Returned','local-purchase':'Ext. purchase',overtime:'Overtime'};
+  const tl={income:'Income',labour:'Labour',material:'Material',note:'Note','roster-cost':'Roster','return':'Returned','local-purchase':'Ext. purchase',overtime:'Overtime',used:'Used up','day-worker':'Day worker'};
   const tb={income:'ba',labour:'bpe',material:'bo',note:'bd2','roster-cost':'bsc','return':'ba','local-purchase':'bo',overtime:'bpe'};
   const rows=logs.map((e,i)=>{
     const realIdx=s.log.length-1-i;
@@ -1950,7 +1952,12 @@ function logDesc(e){
   }
   if(e.type==='labour')return`${fmt(e.cost)}${e.desc?' — '+e.desc:''}`;
   if(e.type==='roster-cost')return`${e.empName} — daily rate <b>${fmt(e.cost)}</b>`;
-  if(e.type==='material')return`${e.matName?'<b>'+e.matName+'</b>: ':''} ${e.qty?e.qty+' '+e.unit+' from warehouse':''}${e.desc?e.desc:''}${e.cost?' · '+fmt(e.cost):''}`;
+  if(e.type==='material'){
+    const m=D.stocks[e.matKey]||{};
+    const nm=e.matName||m.name||e.matKey||'';
+    const un=e.unit||m.unit||'';
+    return`${nm?'<b>'+nm+'</b>: ':''} ${e.qty?e.qty+(un?' '+un:'')+' from warehouse':''}${e.desc?e.desc:''}${e.cost?' · '+fmt(e.cost):''}`;
+  }
   if(e.type==='overtime')return`${e.empName} — <b>${e.hours}h</b> × ${fmt(e.rate)}/h = <b>${fmt(e.cost)}</b>${e.note?' — '+e.note:''}`;
   if(e.type==='local-purchase')return`<b>${e.desc||'External purchase'}</b>${e.vendor?' — '+e.vendor:''} · ${fmt(e.amount||0)}${e.credit?(e.paid?' <span style="font-size:10px;color:var(--pri);font-weight:600">PAID '+(e.paidDate||'')+'</span>':' <span style="font-size:10px;color:var(--dgr);font-weight:600">ON CREDIT</span>'):''}`;
   if(e.type==='note')return e.text;
@@ -2115,7 +2122,8 @@ function saveLog(){
       if(qty>mat.wQty){alert('Not enough in warehouse!');return}
       mat.wQty-=qty;mat.log.push({date,action:'out-to-site',qty,note:'To: '+s.name});
       s.ss=s.ss||{};s.ss[key]=(s.ss[key]||0)+qty;
-      s.ssWork=s.ssWork||{};
+      if(typeof s.ssWork==='string'){try{s.ssWork=JSON.parse(s.ssWork);}catch(e){s.ssWork={};}}
+      if(!s.ssWork||typeof s.ssWork!=='object')s.ssWork={};
       const _wsel=document.getElementById('log-mwork');
       if(_wsel&&_wsel.value)s.ssWork[key]=_wsel.value;
       let mcost=parseFloat(document.getElementById('log-mcost').value)||0;
@@ -2241,7 +2249,7 @@ function saveConsume(){
     const qty=(s.ss||{})[k]||0;if(!(qty>0))return;
     s.log.push({type:'used',date:today(),matKey:k,qty,workId:wid||'',workDesc:w?w.desc:''});
     delete s.ss[k];
-    if(s.ssWork)delete s.ssWork[k];
+    if(s.ssWork&&typeof s.ssWork==='object')delete s.ssWork[k];
   });
   _consumeKeys=[];
   closeModal('modal-consume');
@@ -3661,7 +3669,13 @@ var GS = {
     if (!this.url) return;
     this._timers = this._timers || {};
     if (this._timers[table]) clearTimeout(this._timers[table]);
-    this._timers[table] = setTimeout(() => { delete this._timers[table]; this._doSave(table); }, 800);
+    this._timers[table] = setTimeout(() => {
+      // Everything that fell due together goes up in a single request
+      const due = Object.keys(this._timers);
+      due.forEach(t => clearTimeout(this._timers[t]));
+      this._timers = {};
+      this.saveMany(due);
+    }, 800);
   },
 
   // Fire all pending debounced saves immediately (used before the tab
@@ -3671,9 +3685,70 @@ var GS = {
     const pending = Object.keys(this._timers);
     pending.forEach(t => clearTimeout(this._timers[t]));
     this._timers = {};
-    for (const t of pending) await this._doSave(t);
+    if (pending.length) await this.saveMany(pending);
   },
 
+  // Cheap signature so unchanged tables are never re-uploaded
+  _sig(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+    return str.length + ':' + h;
+  },
+  _tableData(table) {
+    if (table === 'sites')          return D.sites;
+    if (table === 'employees')      return D.employees;
+    if (table === 'stocks')         return D.stocks;
+    if (table === 'purchaseOrders') return D.purchaseOrders;
+    if (table === 'sales')          return D.sales;
+    if (table === 'roster')         return D.roster;
+    if (table === 'fees')           return D.fees;
+    if (table === 'holidays')       return D.holidays;
+    if (table === 'machinery')      return D.machinery;
+    if (table === 'leave')          return D.leave;
+    if (table === 'vendors')        return D.vendors;
+    if (table === 'holders')        return D.holders;
+    if (table === 'cashflow')       return D.cashflow;
+    if (table === 'settings')       return [D.company || {}];
+    if (table === 'expenses')       return D.expenses;
+    return null;
+  },
+  // Send several tables in ONE request when the script supports it —
+  // 15 round trips to Google was the single biggest cause of slowness.
+  async saveMany(tables) {
+    const payload = {}, sigs = {}, sending = [];
+    this._clean = this._clean || {};
+    tables.forEach(t => {
+      const d = this._tableData(t);
+      if (!d) return;
+      const body = JSON.stringify(d);
+      const sig = this._sig(body);
+      if (this._clean[t] === sig && !(this._failed || {})[t]) return;   // unchanged → skip
+      payload[t] = body; sigs[t] = sig; sending.push(t);
+    });
+    if (!sending.length) { this._setStatus('ok'); return []; }
+    if ((this.serverV || 1) < 5) {                                       // older script: one by one
+      const failed = [];
+      for (const t of sending) { const ok = await this._doSave(t); if (!ok) failed.push(t); }
+      return failed;
+    }
+    this._setStatus('saving');
+    const failed = [];
+    try {
+      const r = await this.call({ action: 'saveMany', tables: JSON.stringify(payload) });
+      const res = (r && r.results) || {};
+      this._failed = this._failed || {};
+      sending.forEach(t => {
+        const ok = !!(r && r.ok && res[t] && res[t].ok);
+        if (ok) { this._clean[t] = sigs[t]; delete this._failed[t]; }
+        else { failed.push(t); this._failed[t] = true; }
+      });
+    } catch {
+      this._failed = this._failed || {};
+      sending.forEach(t => { failed.push(t); this._failed[t] = true; });
+    }
+    this._setStatus(failed.length ? 'error' : 'ok');
+    return failed;
+  },
   async _doSave(table) {
     if (!this.url) return;
     this._setStatus('saving');
@@ -3695,10 +3770,14 @@ var GS = {
       else if (table === 'holders')    data = D.holders;
       else if (table === 'cashflow')   data = D.cashflow;
       if (!data) return;
-      const r = await this.call({ action: 'save', table, data: JSON.stringify(data) });
-      const ok = !!(r && r.ok);
+      const body = JSON.stringify(data);
+      const sig = this._sig(body);
+      this._clean = this._clean || {};
       this._failed = this._failed || {};
-      if (ok) delete this._failed[table]; else this._failed[table] = true;
+      if (this._clean[table] === sig && !this._failed[table]) { this._setStatus('ok'); return true; }
+      const r = await this.call({ action: 'save', table, data: body });
+      const ok = !!(r && r.ok);
+      if (ok) { delete this._failed[table]; this._clean[table] = sig; } else this._failed[table] = true;
       this._setStatus(ok ? 'ok' : 'error');
       return ok;
     } catch {
@@ -3713,8 +3792,9 @@ var GS = {
     if (!this.url) return [];
     this._setStatus('saving');
     const tables = ['sites','employees','stocks','purchaseOrders','sales','roster','fees','holidays','machinery','leave','vendors','holders','cashflow','settings','expenses'];
-    const failed = [];
-    for (const t of tables) { const ok = await this._doSave(t); if (!ok) failed.push(t); }
+    const t0 = Date.now();
+    const failed = await this.saveMany(tables);
+    this.lastSaveMs = Date.now() - t0;
     this._setStatus(failed.length ? 'error' : 'ok');
     return failed;
   },
@@ -3745,6 +3825,7 @@ var GS = {
             date: normDate(l.date)
           })),
           ss: typeof s.ss==='string'?tryParseObj(s.ss):s.ss||{},
+          ssWork: typeof s.ssWork==='string'?tryParseObj(s.ssWork):s.ssWork||{},
           works: (typeof s.works==='string'?tryParseArr(s.works):s.works||[]).map(w => ({
             ...w,
             price: parseFloat(w.price)||0,
