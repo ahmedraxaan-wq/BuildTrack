@@ -1,11 +1,17 @@
 /**
- * BuildTrack sync backend — v2
+ * BuildTrack sync backend — VERSION 5
  *
- * WHY THIS UPDATE: the app used to send saves in the URL of a GET
- * request. Google rejects very long URLs, so once a table grew large
- * (sites, roster) its saves silently failed. This version accepts
- * POST requests, which carry the data in the request body — no size
- * limit that matters — while still answering GET for compatibility.
+ * Check what is actually running: open your /exec URL with
+ * ?action=ping on the end. It must answer {"ok":true,"v":5}.
+ * If it says a lower number, this file has not been deployed yet —
+ * pasting and saving is not enough, you must also create a NEW
+ * deployment and connect that new /exec URL in the app.
+ *
+ * WHAT VERSION 5 ADDS
+ *  v5 — saves every table in ONE request instead of fifteen (much faster)
+ *  v4 — optional username/password protection for the whole database
+ *  v3 — company expenses table
+ *  v2 — POST transport, so large tables stop failing silently
  *
  * HOW TO INSTALL (keeps your existing URL and data):
  *  1. Open your spreadsheet → Extensions → Apps Script
@@ -46,6 +52,8 @@ function authToken_() {
   return raw.map(function (b) { b = (b + 256) % 256; return (b < 16 ? '0' : '') + b.toString(16); }).join('');
 }
 
+var BACKEND_V = 5;   // reported by ?action=ping
+
 function doPost(e) {
   var p = {};
   try { p = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
@@ -58,11 +66,11 @@ function route(p) {
   try {
     var authOn = !!(PASSWORD && PASSWORD.length);
     if (p.action === 'ping') {
-      out = { ok: true, v: 5, authRequired: authOn, authOk: !authOn || p.t === authToken_() };
+      out = { ok: true, v: BACKEND_V, authRequired: authOn, authOk: !authOn || p.t === authToken_() };
     } else if (authOn && p.t !== authToken_()) {
-      out = { ok: false, error: 'auth', v: 5 };
+      out = { ok: false, error: 'auth', v: BACKEND_V };
     }
-    else if (p.action === 'loadAll') out = { ok: true, v: 5, data: loadAll() };
+    else if (p.action === 'loadAll') out = { ok: true, v: BACKEND_V, data: loadAll() };
     else if (p.action === 'save')    out = saveTable(p.table, p.data);
     else if (p.action === 'saveMany') out = saveMany(p.tables);
     else                             out = { ok: false, error: 'unknown action' };
@@ -145,7 +153,7 @@ function saveMany(tablesJson) {
     lock.releaseLock();
   }
   var allOk = Object.keys(results).every(function (t) { return results[t] && results[t].ok; });
-  return { ok: allOk, v: 5, results: results };
+  return { ok: allOk, v: BACKEND_V, results: results };
 }
 
 function writeTable_(ss, table, json) {
@@ -174,7 +182,7 @@ function writeTable_(ss, table, json) {
     rows.forEach(function (r) {
       for (var f in r) if (headers.indexOf(f) === -1) headers.push(f);
     });
-    if (!headers.length) { sh.clearContents(); return { ok: true, v: 5, rows: 0 }; }
+    if (!headers.length) { sh.clearContents(); return { ok: true, v: BACKEND_V, rows: 0 }; }
 
     var grid = [headers];
     rows.forEach(function (r) {
@@ -188,6 +196,6 @@ function writeTable_(ss, table, json) {
 
     sh.clearContents();
     sh.getRange(1, 1, grid.length, headers.length).setValues(grid);
-    return { ok: true, v: 5, rows: rows.length };
+    return { ok: true, v: BACKEND_V, rows: rows.length };
   }
 }

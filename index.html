@@ -1096,6 +1096,10 @@ function sitePhases(s){
     else if(e.type==='return')v=-(e.cost||0);
     else if(e.type==='local-purchase')v=e.amount||0;
     else return;
+    // A cost booked against a specific work belongs to that work's phase,
+    // whatever its date says; untagged costs fall back to the date split
+    const tw=e.workId?works.find(w=>String(w.id)===String(e.workId)):null;
+    if(tw){if((tw.status||'active')==='done')cOld+=v;else cNew+=v;return;}
     if(boundary&&String(e.date||'')<=boundary)cOld+=v;else cNew+=v;
   });
   cOld=Math.round(cOld*100)/100;cNew=Math.round(cNew*100)/100;
@@ -1564,6 +1568,13 @@ function syncManagersForDate(date){
 // A person can cover several sites in one day (supervisors, managers).
 // They still earn ONE day rate — this splits it across their sites for
 // that date and keeps every site's roster-cost log entry in step.
+// The work a site's crew is currently building: the one that has been
+// started (▶Start). If several are running, the most recently started.
+function activeWorkFor(s){
+  const open=((s&&s.works)||[]).filter(w=>(w.status||'active')==='active');
+  if(!open.length)return null;
+  return open.slice().sort((a,b)=>String(a.startDate||'').localeCompare(String(b.startDate||'')))[open.length-1];
+}
 function rebalanceRosterDay(empId,date){
   empId=parseInt(empId);
   const emp=D.employees.find(e=>e.id===empId);if(!emp)return;
@@ -1579,9 +1590,11 @@ function rebalanceRosterDay(empId,date){
     const site=D.sites.find(s=>s.id===r.siteId);if(!site)return;
     site.log=site.log||[];
     let le=site.log.find(l=>l.type==='roster-cost'&&l.date===date&&l.empId===empId);
+    const aw=activeWorkFor(site);
+    r.workId=r.workId||(aw?aw.id:'');
     if(working){
-      if(le)le.cost=cost;
-      else site.log.push({type:'roster-cost',date,empId,empName:emp.name,cost});
+      if(le){le.cost=cost;if(!le.workId&&aw){le.workId=aw.id;le.workDesc=aw.desc;}}
+      else site.log.push({type:'roster-cost',date,empId,empName:emp.name,cost,workId:aw?aw.id:'',workDesc:aw?aw.desc:''});
       if(le)le.split=n>1?n:undefined;else site.log[site.log.length-1].split=n>1?n:undefined;
     }else if(le){
       site.log=site.log.filter(l=>l!==le);
@@ -2007,7 +2020,11 @@ function renderDetailCrew(s){
   const crew=D.roster.filter(r=>r.date===today()&&r.siteId===s.id);
   const el=document.getElementById('d-crew');
   if(!crew.length){el.innerHTML='<div class="empty" style="padding:14px">No crew here today</div>';return}
-  el.innerHTML='<div class="dp" style="padding:6px 10px">'+crew.map(r=>{
+  const aw=activeWorkFor(s);
+  const onWork=aw
+    ?`<div style="font-size:10px;color:var(--inf);background:var(--inf-bg);border-radius:6px;padding:5px 9px;margin-bottom:6px">Today's labour is booked to <b>${aw.desc}</b></div>`
+    :`<div style="font-size:10px;color:var(--amb-tx);background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:6px;padding:5px 9px;margin-bottom:6px">No work started yet — press ▶Start on a work so today's labour is booked to it.</div>`;
+  el.innerHTML=onWork+'<div class="dp" style="padding:6px 10px">'+crew.map(r=>{
     const emp=D.employees.find(e=>e.id===r.empId);if(!emp)return'';const[bg,tc]=avc(s.id);
     return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0"><div class="av" style="background:${bg};color:${tc}">${ini(emp.name)}</div>
       <div style="flex:1"><div style="font-size:12px;font-weight:500">${emp.name}</div><div style="font-size:10px;color:var(--mut)">${emp.role}</div></div>
@@ -2151,7 +2168,12 @@ function saveLog(){
     }
     Object.assign(entry,readPayMethod('loginc'));
   }
-  if(type==='labour'){entry.cost=parseFloat(document.getElementById('log-lcost').value)||0;entry.desc=document.getElementById('log-ldesc').value}
+  if(type==='labour'){
+    entry.cost=parseFloat(document.getElementById('log-lcost').value)||0;
+    entry.desc=document.getElementById('log-ldesc').value;
+    const aw=activeWorkFor(s);
+    if(aw){entry.workId=aw.id;entry.workDesc=aw.desc;}
+  }
   if(type==='material'){
     const wh=document.getElementById('log-msrc').value==='warehouse';
     if(wh){
@@ -3671,6 +3693,23 @@ var GS = {
     this.url = url.trim();
   },
 
+  async _fetchT(url, opts) {
+    let timer;
+    const limit = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('timeout')), 30000); });
+    try { return await Promise.race([fetch(url, opts), limit]); }
+    finally { clearTimeout(timer); }
+  },
+  async _readJson(res) {
+    if (typeof res.text !== 'function') return await res.json();
+    const txt = await res.text();
+    try { return JSON.parse(txt); }
+    catch (e) {
+      // Not JSON: almost always Google's sign-in page, which means the
+      // deployment is not shared with "Anyone"
+      this.lastError = /accounts\.google|signin|<html|<!doctype/i.test(txt || '') ? 'access' : 'badresponse';
+      throw new Error(this.lastError);
+    }
+  },
   async call(params) {
     if (!this.url) return null;
     if (this.authT) params = { ...params, u: this.authU, t: this.authT };
@@ -3678,18 +3717,21 @@ var GS = {
     // long URLs, which silently broke saves once tables grew large.
     const body = JSON.stringify(params);
     let r;
+    this.lastError = null;
     try {
-      const res = await fetch(this.url, { method: 'POST', body });
-      r = await res.json();
+      const res = await this._fetchT(this.url, { method: 'POST', body });
+      r = await this._readJson(res);
       if (r && r.error === 'auth') { this.authOk = false; try { showLock('Sign in to continue.'); } catch (e) {} }
       return r;
     } catch (err) {
       // Older Apps Script deployments only implement doGet: fall back to
       // the query-string transport, but ONLY for small payloads — huge
       // URLs are exactly what gets rejected.
+      if (params.action === 'saveMany') throw err;   // never send a batch as a URL
+      if (this.lastError === 'access') throw err;      // sign-in page — retrying will not help
       if (body.length < 7000) {
-        const res = await fetch(this.url + '?' + new URLSearchParams(params).toString());
-        r = await res.json();
+        const res = await this._fetchT(this.url + '?' + new URLSearchParams(params).toString());
+        r = await this._readJson(res);
         if (r && r.error === 'auth') { this.authOk = false; try { showLock('Sign in to continue.'); } catch (e) {} }
         return r;
       }
@@ -3703,6 +3745,7 @@ var GS = {
     try {
       const r = await this.call({ action: 'ping' });
       this.serverV = (r && r.v) || 1;
+      if (this._sigUrl !== this.url) { this._clean = {}; this._sigUrl = this.url; }
       this.authRequired = !!(r && r.authRequired);
       this.authOk = !this.authRequired || !!(r && r.authOk);
       return r && r.ok;
@@ -3715,6 +3758,7 @@ var GS = {
   // but silently dropped the purchaseOrders save)
   save(table) {
     if (!this.url) return;
+    if (!this._loadedOnce) return;   // nothing on screen is trustworthy yet
     this._timers = this._timers || {};
     if (this._timers[table]) clearTimeout(this._timers[table]);
     this._timers[table] = setTimeout(() => {
@@ -3763,6 +3807,8 @@ var GS = {
   // Send several tables in ONE request when the script supports it —
   // 15 round trips to Google was the single biggest cause of slowness.
   async saveMany(tables) {
+    if (!this.url) return [];
+    if (!this._loadedOnce) { this._setStatus('idle'); return []; }
     const payload = {}, sigs = {}, sending = [];
     this._clean = this._clean || {};
     tables.forEach(t => {
@@ -3780,25 +3826,51 @@ var GS = {
       return failed;
     }
     this._setStatus('saving');
+    this._failed = this._failed || {};
     const failed = [];
-    try {
-      const r = await this.call({ action: 'saveMany', tables: JSON.stringify(payload) });
-      const res = (r && r.results) || {};
-      this._failed = this._failed || {};
-      sending.forEach(t => {
-        const ok = !!(r && r.ok && res[t] && res[t].ok);
-        if (ok) { this._clean[t] = sigs[t]; delete this._failed[t]; }
+    // Group into chunks so one request never carries an unreasonable
+    // payload — big tables used to make the whole batch fail
+    const CHUNK = 300000;
+    const chunks = [];
+    let cur = [], curSize = 0;
+    sending.forEach(t => {
+      const size = payload[t].length;
+      if (cur.length && curSize + size > CHUNK) { chunks.push(cur); cur = []; curSize = 0; }
+      cur.push(t); curSize += size;
+    });
+    if (cur.length) chunks.push(cur);
+
+    for (const group of chunks) {
+      const body = {};
+      group.forEach(t => { body[t] = payload[t]; });
+      let res = null;
+      try {
+        const r = await this.call({ action: 'saveMany', tables: JSON.stringify(body) });
+        // Only a response that reports on each table can be trusted
+        if (r && r.results && group.every(t => r.results[t])) res = r.results;
+      } catch { res = null; }
+      if (res) {
+        group.forEach(t => {
+          if (res[t] && res[t].ok) { this._clean[t] = sigs[t]; delete this._failed[t]; }
+          else { failed.push(t); this._failed[t] = true; }
+        });
+        continue;
+      }
+      // Batch failed — retry these tables individually so a single bad
+      // table cannot drag the rest down with it
+      for (const t of group) {
+        this._failed[t] = true;                 // force a real attempt
+        const ok = await this._doSave(t);
+        if (ok) { delete this._failed[t]; this._clean[t] = sigs[t]; }
         else { failed.push(t); this._failed[t] = true; }
-      });
-    } catch {
-      this._failed = this._failed || {};
-      sending.forEach(t => { failed.push(t); this._failed[t] = true; });
+      }
     }
     this._setStatus(failed.length ? 'error' : 'ok');
     return failed;
   },
   async _doSave(table) {
     if (!this.url) return;
+    if (!this._loadedOnce) return false;
     this._setStatus('saving');
     try {
       let data;
@@ -3849,7 +3921,7 @@ var GS = {
 
   async loadAll() {
     if (!this.url) return false;
-    this._setStatus('saving');
+    this._setStatus('loading');
     try {
       const r = await this.call({ action: 'loadAll' });
       if (!r || !r.ok) { this._setStatus('error'); return false; }
@@ -4111,7 +4183,8 @@ var GS = {
     if (!el) return;
     const map = {
       idle:   ['', 'var(--mut)'],
-      saving: ['Saving…', 'var(--amb)'],
+      saving:  ['Saving…', 'var(--amb)'],
+      loading: ['Loading your data…', 'var(--amb)'],
       ok:     ['✓ Saved', 'var(--pri)'],
       error:  ['⚠ Not saved', 'var(--dgr)']
     };
@@ -4239,7 +4312,19 @@ async function gsBannerTest() {
   if (!url) { statusEl.textContent = 'Paste the URL first'; statusEl.style.color = 'var(--dgr)'; return; }
   GS.setUrl(url);
   statusEl.textContent = 'Testing…'; statusEl.style.color = 'var(--amb)';
-  var ok = await GS.ping();
+  var ok = false;
+  try { ok = await GS.ping(); } catch (e) { ok = false; }
+  if (!ok) {
+    var why = GS.lastError === 'access'
+      ? '✗ Google is asking to sign in, so the app cannot read your sheet. In Apps Script: Deploy → Manage deployments → ✏ edit → set "Who has access" to <b>Anyone</b> → Deploy, then paste that URL here again.'
+      : GS.lastError === 'timeout'
+        ? '✗ Google did not respond in time. Check your connection and press Connect again.'
+        : '✗ Could not reach the script. Check the URL is the /exec address of your newest deployment.';
+    GS._setStatus('idle');                    // clear first — it writes to this same line
+    statusEl.innerHTML = why; statusEl.style.color = 'var(--dgr)';
+    if (btn) btn.textContent = 'Connect';
+    return;
+  }
   if (ok && GS.authRequired && !GS.authOk) {
     statusEl.textContent = '🔒 This database is protected — sign in to load it.';
     statusEl.style.color = 'var(--amb)';
