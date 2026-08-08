@@ -3,7 +3,7 @@
 //   when online) and falls back to the cached copy offline.
 // - Icons cache-first.
 // - Google Apps Script sync calls are NEVER cached or intercepted.
-const CACHE = 'buildtrack-v16';
+const CACHE = 'buildtrack-v19';
 const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {

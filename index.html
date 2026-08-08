@@ -276,6 +276,7 @@ tr:hover td{background:var(--bg3)}
     <div class="tab" onclick="fSites('own',this)">Own work</div>
     <div class="tab" onclick="fSites('done',this)">Completed</div>
     <div class="tab" onclick="fSites('unpaid',this)">💰 Unpaid</div>
+    <input id="site-search" oninput="renderSites()" placeholder="🔍 Search worksites…" style="margin-left:auto;min-width:170px;padding:5px 10px;font-size:12px;border:1px solid var(--inp);border-radius:7px;background:var(--bg);color:var(--tx)">
   </div>
   <div id="sites-list"></div>
 </div>
@@ -440,9 +441,10 @@ tr:hover td{background:var(--bg3)}
   <div id="fin-receivables" style="margin-bottom:20px"></div>
   <div id="fin-vendors" style="margin-bottom:20px"></div>
   <div class="sec">
+    <div id="fin-note" style="font-size:11px;color:var(--mut);margin:-6px 0 14px;line-height:1.5"></div>
     <div class="sh"><span class="st">Per-site profit breakdown</span></div>
     <table>
-      <thead><tr><th>Site</th><th>Type</th><th>Labour quote</th><th>Labour cost</th><th>Labour profit</th><th>Mat. quote</th><th>Mat. spend</th><th>Mat. profit</th><th>Total profit</th></tr></thead>
+      <thead><tr><th>Site</th><th>Status</th><th>Agreed<br><span style="font-weight:400">incl. extras</span></th><th>Costs<br><span style="font-weight:400">spent</span></th><th>Completed<br><span style="font-weight:400">work value</span></th><th>Earned<br><span style="font-weight:400">so far</span></th><th>Projected<br><span style="font-weight:400">if all done</span></th></tr></thead>
       <tbody id="fin-table"></tbody>
     </table>
   </div>
@@ -591,7 +593,8 @@ tr:hover td{background:var(--bg3)}
 <div class="mo" id="modal-roster"><div class="md" style="max-width:470px">
   <div class="mt">Allocate crew to site</div>
   <div class="fg"><label>Date</label><input type="date" id="ra-date" onchange="popCrewChecklist()"></div>
-  <div class="fg"><label>Worksite</label><select id="ra-site" onchange="popCrewChecklist()"></select></div>
+  <div class="fg"><label>Worksite</label><select id="ra-site" onchange="popCrewChecklist();fillCrewWork()"></select></div>
+  <div class="fg"><label>Working on</label><select id="ra-work"></select><div id="ra-work-hint" style="font-size:10px;color:var(--mut);margin-top:3px"></div></div>
   <div class="fg"><label>Crew — tick everyone working at this site</label>
     <div id="ra-crew" style="max-height:270px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:4px 10px"></div>
   </div>
@@ -670,6 +673,13 @@ tr:hover td{background:var(--bg3)}
 </div></div>
 
 <!-- RETURN STOCK -->
+<div class="mo" id="modal-income"><div class="md" style="max-width:480px">
+  <div class="mt">Income received</div>
+  <div style="font-size:11px;color:var(--mut);margin-bottom:4px">Every payment counted in this period · <span id="inc-period"></span></div>
+  <div style="font-size:13px;font-weight:700;color:var(--pri);margin-bottom:8px">Total <span id="inc-total"></span></div>
+  <div id="inc-body" style="max-height:60vh;overflow-y:auto"></div>
+  <div class="ma"><button class="btn" onclick="closeModal('modal-income')">Close</button></div>
+</div></div>
 <div class="mo" id="modal-consume"><div class="md" style="max-width:420px">
   <div class="mt" id="cm-title">Mark materials as used up</div>
   <div style="font-size:11px;color:var(--mut);margin-bottom:8px">They leave the on-site list and are filed under the work they were used for. Nothing returns to the warehouse; their cost stays counted on this site.</div>
@@ -1248,6 +1258,25 @@ function openCrewForSite(){
   document.getElementById('ra-date').value=today();
   if(D.activeSiteId)document.getElementById('ra-site').value=String(D.activeSiteId);
   popCrewChecklist();
+  fillCrewWork();
+}
+// Defaults to the work in progress, so a finished work never picks up
+// today's labour — but stays changeable
+function fillCrewWork(){
+  const sel=document.getElementById('ra-work');if(!sel)return;
+  const siteId=parseInt(document.getElementById('ra-site').value);
+  const s=D.sites.find(x=>x.id===siteId);
+  const hint=document.getElementById('ra-work-hint');
+  if(!s||!(s.works||[]).length){
+    sel.innerHTML='<option value="">— no works on this site —</option>';
+    if(hint)hint.textContent='Add a work to this site to book labour against it.';
+    return;
+  }
+  const aw=activeWorkFor(s);
+  sel.innerHTML=workOptions(s,aw?aw.id:'');
+  if(hint)hint.innerHTML=aw
+    ?'Today\'s labour will be booked to <b>'+aw.desc+'</b> (the work in progress).'
+    :'No work is started — press ▶Start on the work you are doing, or pick one here.';
 }
 function popSel(id){document.getElementById(id).innerHTML=Object.entries(D.stocks).map(([k,v])=>`<option value="${k}">${v.name} (${v.unit})</option>`).join('')}
 
@@ -1263,6 +1292,40 @@ function dashRange(p){
 }
 // Realized figures only: income actually received and costs actually
 // incurred within the period — never quoted-but-unfinished profit
+// Every payment that makes up "Income received" for the period, so the
+// figure can be opened up and checked against reality
+function incomeBreakdown(from,to){
+  const inR=d=>{d=String(d||'');return d&&(!from||d>=from)&&(!to||d<=to);};
+  const rows=[];
+  (D.sites||[]).forEach(s=>(s.log||[]).forEach(e=>{
+    if(e.type!=='income'||!inR(e.date))return;
+    const amt=(e.lIn||0)+(e.mIn||0)+(e.advance||0)+(e.unsplit?(e.amount||0):0);
+    if(!amt)return;
+    const parts=[];
+    if(e.lIn)parts.push('labour '+fmt(e.lIn));
+    if(e.mIn)parts.push('materials '+fmt(e.mIn));
+    if(e.advance)parts.push('advance');
+    if(e.unsplit)parts.push('not yet split');
+    rows.push({date:e.date,from:s.name,siteId:s.id,amount:amt,
+      note:(e.workName?e.workName+' · ':'')+parts.join(' · '),
+      method:e.method||'',holder:e.holder||''});
+  }));
+  return rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+function openIncomeBreakdown(){
+  const r=dashRange(_dashPeriod);
+  const rows=incomeBreakdown(r.from,r.to);
+  const total=rows.reduce((a,x)=>a+x.amount,0);
+  const el=document.getElementById('inc-body');
+  document.getElementById('inc-period').textContent=(r.from||'start')+' → '+(r.to||'today');
+  document.getElementById('inc-total').textContent=fmt(total);
+  el.innerHTML=rows.length?rows.map(x=>`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--line2);font-size:12px">
+    <span style="flex:1"><b>${x.from}</b><div style="font-size:10px;color:var(--mut)">${x.date}${x.note?' · '+x.note:''}${x.method?' · '+(x.method==='bank'?'BANK':'CASH'+(x.holder?' · '+x.holder:'')):''}</div></span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><b style="color:var(--pri)">${fmt(x.amount)}</b>
+    <button class="btn bs" style="font-size:10px" onclick="closeModal('modal-income');openDetail(${x.siteId})">Open</button></span>
+  </div>`).join(''):'<div class="empty">No money received in this period.</div>';
+  openModal('modal-income');
+}
 function dashRealized(from,to){
   const inR=d=>{d=String(d||'');return d&&(!from||d>=from)&&(!to||d<=to);};
   let income=0,costs=0;
@@ -1299,7 +1362,7 @@ function renderDash(){
   if(lbl)lbl.textContent=rng.from?rng.from+' → '+rng.to:'everything ever recorded';
   const pc=document.getElementById('dash-period-cards');
   if(pc)pc.innerHTML=`
-    <div class="card"><div class="cl">Income received</div><div class="cv g" style="font-size:13px">${fmt(rz.income)}</div></div>
+    <div class="card" onclick="openIncomeBreakdown()" style="cursor:pointer" title="See where this money came from"><div class="cl">Income received ›</div><div class="cv g" style="font-size:13px">${fmt(rz.income)}</div></div>
     <div class="card"><div class="cl">Costs incurred</div><div class="cv r" style="font-size:13px">${fmt(rz.costs)}</div></div>
     <div class="card"><div class="cl">Realized profit</div><div class="cv ${rz.profit>=0?'g':'r'}" style="font-size:13px">${fmt(rz.profit)}</div></div>
     <div class="card"><div class="cl">Works completed</div><div class="cv" style="font-size:13px">${rz.worksDoneCount} · ${fmt(rz.worksDoneValue)}</div></div>
@@ -1679,7 +1742,18 @@ function saveRosterMulti(){
   const siteId=parseInt(document.getElementById('ra-site').value);
   if(!date||!siteId){alert('Please choose a date and a worksite.');return;}
   const selected=[...document.querySelectorAll('.ra-emp-cb:checked')].map(cb=>parseInt(cb.value));
+  const wsel=document.getElementById('ra-work');
+  const chosenWork=wsel?wsel.value:'';
   setCrewForSiteDate(siteId,date,selected);
+  // Book this day's rows to the chosen work before the split is costed
+  if(chosenWork){
+    const s0=D.sites.find(x=>x.id===siteId);
+    const w0=s0?(s0.works||[]).find(x=>String(x.id)===String(chosenWork)):null;
+    D.roster.filter(r=>r.date===date&&r.siteId===siteId).forEach(r=>{r.workId=chosenWork;});
+    if(s0)(s0.log||[]).forEach(l=>{
+      if(l.type==='roster-cost'&&l.date===date){l.workId=chosenWork;l.workDesc=w0?w0.desc:'';}
+    });
+  }
   syncManagersForDate(date);
   window._preTickEmp=null;
   GS.save('roster');GS.save('sites');
@@ -1710,6 +1784,7 @@ function quickAlloc(empId,date){
 function fSites(f,el){D.siteFilter=f;document.querySelectorAll('#page-worksites .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderSites();}
 function renderSites(){
   syncAllSiteStatus(true);
+  const _q=((document.getElementById('site-search')||{}).value||'').trim().toLowerCase();
   let sites=D.sites;const f=D.siteFilter;
   if(f==='scheduled')sites=sites.filter(s=>s.status==='scheduled');
   else if(f==='active')sites=sites.filter(s=>s.status==='active'&&s.type!=='own');
@@ -1717,6 +1792,7 @@ function renderSites(){
   else if(f==='own')sites=sites.filter(s=>s.type==='own');
   else if(f==='done')sites=sites.filter(s=>s.status==='done');
   else if(f==='unpaid')sites=sites.filter(s=>clientDue(s).dueNow>0);
+  if(_q)sites=sites.filter(s=>((s.name||'')+' '+(s.loc||'')+' '+((s.works||[]).map(w=>w.desc).join(' '))).toLowerCase().includes(_q));
   document.getElementById('sites-list').innerHTML=sites.length?sites.map(s=>s.status==='scheduled'?`<div class="sc" onclick="openDetail(${s.id})"><div class="sch"><span style="font-weight:500;font-size:12px">${s.name}</span>${getBadge(s)}</div><div style="font-size:11px;color:var(--mut)">${s.loc}${s.expectedStart?' · Expected: '+s.expectedStart:''}</div></div>`:siteCard(s)).join(''):'<div class="empty">No worksites here</div>';
 }
 function onSiteType(){}
@@ -1962,8 +2038,10 @@ function renderDetailSiteStock(s){
     used.forEach(e=>{
       const key=e.workId||'';
       const g=groups[key]=groups[key]||{name:e.workDesc||wName(e.workId)||'Not tied to a work',items:{},date:''};
-      const m=D.stocks[e.matKey]||{name:e.matName||e.matKey,unit:''};
-      const it=g.items[e.matKey]=g.items[e.matKey]||{name:m.name,unit:m.unit,qty:0};
+      const live=D.stocks[e.matKey]||{};
+      const nm=e.matName||live.name||e.matKey;
+      const un=e.unit||live.unit||'';
+      const it=g.items[e.matKey]=g.items[e.matKey]||{name:nm,unit:un,qty:0};
       it.qty+=e.qty||0;
       if(String(e.date||'')>g.date)g.date=String(e.date||'');
     });
@@ -1995,7 +2073,11 @@ function renderDetailLog(s){
   document.getElementById('d-log').innerHTML='<div class="dp">'+limitLog(rows,'sitelog'+s.id,'rerenderDetailLog()',15)+'</div>';
 }
 function logDesc(e){
-  if(e.type==='used'){const m=D.stocks[e.matKey]||{name:e.matKey,unit:''};return`<b>${m.name}</b> — ${e.qty} ${m.unit} used up${e.workDesc?' in '+e.workDesc:''}`;}
+  if(e.type==='used'){
+    const live=D.stocks[e.matKey]||{};
+    const nm=e.matName||live.name||e.matKey, un=e.unit||live.unit||'';
+    return`<b>${nm}</b> — ${e.qty}${un?' '+un:''} used up${e.workDesc?' in '+e.workDesc:''}`;
+  }
   if(e.type==='income'){
     if(e.isAdvance)return`<b>Advance payment: ${fmt(e.advance)}</b> <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
     if(e.unsplit)return`<b>Payment received: ${fmt(e.amount||0)}</b>${e.workName?' — '+e.workName:''} <span style="font-size:10px;color:var(--amb)">(not yet split)</span>`;
@@ -2303,12 +2385,20 @@ function openConsume(title,lines){
 }
 function saveConsume(){
   const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
+  // The on-site map can arrive from the sheet as text; deleting keys off
+  // a string silently does nothing, which is why materials came back
+  if(typeof s.ss==='string'){try{s.ss=JSON.parse(s.ss);}catch(e){s.ss={};}}
+  if(!s.ss||typeof s.ss!=='object')s.ss={};
+  if(typeof s.ssWork==='string'){try{s.ssWork=JSON.parse(s.ssWork);}catch(e){s.ssWork={};}}
+  if(!s.ssWork||typeof s.ssWork!=='object')s.ssWork={};
   const wid=document.getElementById('cm-work').value;
   const w=(s.works||[]).find(x=>String(x.id)===String(wid));
   let skipped=0;
   _consumeKeys.forEach(k=>{
     const qty=(s.ss||{})[k]||0;if(!(qty>0))return;
-    const entry={type:'used',date:today(),matKey:k,qty,workId:wid||'',workDesc:w?w.desc:''};
+    const _m=D.stocks[k]||{};
+    const entry={type:'used',date:today(),matKey:k,qty,matName:_m.name||k,unit:_m.unit||'',
+      workId:wid||'',workDesc:w?w.desc:''};
     // Never file an identical record twice — that is what inflated the
     // archive when saves were retried
     if((s.log||[]).some(e=>e.type==='used'&&usedKey(e)===usedKey(entry))){
@@ -2324,6 +2414,11 @@ function saveConsume(){
   closeModal('modal-consume');
   if(skipped)alert(skipped+' material'+(skipped>1?'s were':' was')+' already filed under this work today — cleared from the site without duplicating the record.');
   GS.save('sites');
+  // Push straight away rather than waiting on the debounce, so the
+  // banner tells you now whether this actually reached the spreadsheet
+  if(GS.url&&GS._loadedOnce)GS.flush().then(()=>{
+    if((GS._failed||{}).sites)alert('⚠ This did NOT reach Google Sheets, so the materials will come back when you reload.\n\nCheck the sync banner at the top of the Dashboard.');
+  });
   renderDetailSiteStock(s);renderDetailLog(s);renderDetailProfit(s);
 }
 function consumeMat(key){
@@ -3347,29 +3442,52 @@ function renderMachinery(){
 function renderFinance(){
   renderFinExpenses();
   renderFinReceivables();
-  let tLC=0,tMC=0,tLP=0,tMP=0;
-  D.sites.forEach(s=>{const st=siteStats(s);if(s.type!=='own'){tLC+=st.lCost;tMC+=st.totalMatCost;tLP+=st.totalQuote;tMP+=st.totalProfit;}});
+  // Honest aggregation, all client sites, all time
+  let agreed=0, extras=0, costs=0, doneValue=0, received=0, dueNow=0;
+  D.sites.forEach(s=>{
+    if(s.type==='own')return;
+    const st=siteStats(s);
+    agreed  += st.totalQuote;
+    extras  += st.extrasBill||0;
+    costs   += st.totalCost;
+    received+= st.lIn+st.mIn+st.advanceIn;
+    const d=clientDue(s);
+    doneValue += d.doneValue;         // completed work + chargeable extras
+    dueNow    += d.dueNow;
+  });
+  const projected = Math.round((agreed+extras-costs)*100)/100;   // if everything finishes
+  const earned    = Math.round((doneValue-costs)*100)/100;       // completed work vs money spent
+  costs = Math.round(costs*100)/100;
   const fgn=D.employees.filter(e=>e.empType==='foreign');
   const totalPayroll=D.employees.reduce((a,e)=>a+e.monthly+(e.empType==='foreign'?FOOD_MONTHLY:0),0);
   const totalSalesRev=D.sales.reduce((a,s)=>a+salePaid(s),0)+internalSalesTotal();
   const totalSalesOut=D.sales.reduce((a,s)=>a+saleOutstanding(s),0);
   const totalSalesGross=D.sales.reduce((a,s)=>a+saleTotal(s),0);
   document.getElementById('fin-cards').innerHTML=`
-    <div class="card"><div class="cl">Labour profit</div><div class="cv ${tLP>=0?'g':'r'}" style="font-size:13px">${fmt(tLP)}</div></div>
-    <div class="card"><div class="cl">Material profit</div><div class="cv ${tMP>=0?'g':'r'}" style="font-size:13px">${fmt(tMP)}</div></div>
-    <div class="card"><div class="cl">Site total profit</div><div class="cv ${(tLP+tMP)>=0?'g':'r'}" style="font-size:13px">${fmt(tLP+tMP)}</div></div>
+    <div class="card"><div class="cl">Money received from clients</div><div class="cv g" style="font-size:13px">${fmt(received)}</div></div>
+    <div class="card"><div class="cl">Still to collect</div><div class="cv ${dueNow>0?'am':''}" style="font-size:13px">${fmt(dueNow)}</div></div>
+    <div class="card"><div class="cl">Costs incurred</div><div class="cv r" style="font-size:13px">${fmt(costs)}</div></div>
+    <div class="card"><div class="cl">Earned so far <span style="font-weight:400;text-transform:none">(completed work − costs)</span></div><div class="cv ${earned>=0?'g':'r'}" style="font-size:13px">${fmt(earned)}</div></div>
+    <div class="card"><div class="cl">Projected <span style="font-weight:400;text-transform:none">(if all agreed work finishes)</span></div><div class="cv ${projected>=0?'g':'r'}" style="font-size:13px">${fmt(projected)}</div></div>
+    <div class="card"><div class="cl">Agreed value of all works</div><div class="cv" style="font-size:13px">${fmt(agreed+extras)}</div></div>
     <div class="card"><div class="cl">Sales collected</div><div class="cv g" style="font-size:13px">${fmt(totalSalesRev)}</div></div>
     <div class="card"><div class="cl">Sales outstanding</div><div class="cv am" style="font-size:13px">${fmt(totalSalesOut)}</div></div>
     <div class="card"><div class="cl">Monthly payroll</div><div class="cv r" style="font-size:13px">${fmt(totalPayroll)}</div></div>
   `;
+  const note=document.getElementById('fin-note');
+  if(note)note.innerHTML='<b>Earned so far</b> counts only works you have marked ✓Done, minus every cost spent on these sites — that is money genuinely made. <b>Projected</b> assumes every agreed work finishes at its quoted price, so it is always the larger, more optimistic number. Neither is cash in hand: see Cash &amp; bank below for that.';
   document.getElementById('fin-table').innerHTML=D.sites.map(s=>{
     const st=siteStats(s);const isOwn=s.type==='own';
+    const d=clientDue(s);
+    const earned=Math.round((d.doneValue-st.totalCost)*100)/100;
+    const projected=Math.round((st.totalQuote+(st.extrasBill||0)-st.totalCost)*100)/100;
     return`<tr><td><b style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="openDetail(${s.id})">${s.name}</b></td>
       <td>${getBadge(s)}</td>
-      <td>${isOwn?'—':fmt(st.totalQuote)+(s.works&&s.works.length?' ('+s.works.length+' works)':'')}</td>
-      <td class="r">${fmt(st.totalCost)}</td><td class="r">${fmt(st.lCost)}</td>
-      <td class="r">${fmt(st.totalMatCost)}</td>
-      <td style="font-weight:500" class="${st.totalProfit>=0?'g':'r'}">${isOwn?'—':fmt(st.totalProfit)}</td>
+      <td>${isOwn?'—':fmt(st.totalQuote+(st.extrasBill||0))+(s.works&&s.works.length?' <span style="color:var(--mut);font-size:10px">('+s.works.length+' works)</span>':'')}</td>
+      <td class="r">${fmt(st.totalCost)}</td>
+      <td>${isOwn?'—':fmt(d.doneValue)}</td>
+      <td style="font-weight:500" class="${earned>=0?'g':'r'}">${isOwn?'—':fmt(earned)}</td>
+      <td class="${projected>=0?'g':'r'}">${isOwn?'—':fmt(projected)}</td>
     </tr>`;
   }).join('');
   const byMat={};D.sales.forEach(s=>s.items.forEach(i=>{if(!byMat[i.name||i.matName||'?'])byMat[i.name||i.matName||'?']={gross:0,collected:0,outstanding:0};byMat[i.name||i.matName||'?'].gross+=i.qty*i.price;}));
