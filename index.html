@@ -3937,6 +3937,34 @@ function tryParseObj(v){try{var r=JSON.parse(v);return(r&&typeof r==='object'&&!
 // The loader repairs old or damaged records as it reads them. Those
 // repairs must be saved AFTER the load finishes — never during it,
 // when pushing is still forbidden.
+// Some records were saved before they had ids of their own (fees never
+// had one at all). They come back as NaN, which makes them impossible
+// to tell apart — editing, deleting or syncing could then hit the wrong
+// record. Give each a real id. Only tables whose id is not referenced
+// anywhere else are touched, so nothing can be orphaned.
+function healRecordIds(){
+  const fixable=[['fees','nextFeeId'],['machinery','nextMachId'],['leave','nextLeaveId'],
+                 ['holidays','nextHolId'],['cashflow','nextCashId'],['expenses','nextExpId']];
+  const changed=[];
+  fixable.forEach(function(pair){
+    const t=pair[0], counter=pair[1];
+    const arr=D[t];
+    if(!Array.isArray(arr)||!arr.length)return;
+    let max=0;
+    arr.forEach(function(r){ const n=parseInt(r&&r.id); if(isFinite(n)&&n>max)max=n; });
+    let next=Math.max(max+1, parseInt(D[counter])||1);
+    const seen=Object.create(null);
+    let did=false;
+    arr.forEach(function(r){
+      if(!r||typeof r!=='object')return;
+      const n=parseInt(r.id);
+      if(!isFinite(n)||seen[n]){ r.id=next++; did=true; }
+      seen[parseInt(r.id)]=1;
+    });
+    if(did){ D[counter]=next; changed.push(t); }
+  });
+  return changed;
+}
 function _deferSave(table){
   setTimeout(function(){ try{ GS.save(table); }catch(e){} }, 0);
 }
@@ -4184,6 +4212,7 @@ function applyLoadedData(d){
       D.nextVendorId = Math.max(_next(D.vendors), D.nextVendorId || 1);
       D.nextHolderId = Math.max(_next(D.holders), D.nextHolderId || 1);
       D.nextCashId   = Math.max(_next(D.cashflow), D.nextCashId || 1);
+  healRecordIds().forEach(_deferSave);
 }
 
 
@@ -4268,7 +4297,18 @@ var SB = {
   // possible — roster rows have none of their own, so they take a
   // composite one.
   _rows(table){
-    const out=[]; const push=(id,doc)=>out.push({ id:String(id), doc });
+    const out=[]; const used=Object.create(null);
+    const push=(id,doc)=>{
+      let key = (id===undefined||id===null) ? '' : String(id);
+      if (!key || key==='NaN' || key==='undefined' || key==='null' || used[key]){
+        const base = 'row'+out.length;
+        let k = base, n = 0;
+        while (used[k]) k = base+'_'+(++n);
+        key = k;
+      }
+      used[key] = 1;
+      out.push({ id:key, doc });
+    };
     if (table==='stocks'){ Object.keys(D.stocks||{}).forEach(k=>push(k, D.stocks[k])); return out; }
     if (table==='settings'){ push('company', D.company||{}); return out; }
     if (table==='roster'){ (D.roster||[]).forEach(r=>push([r.date,r.empId,r.siteId].join('|'), r)); return out; }
@@ -4289,8 +4329,8 @@ var SB = {
     const gone = Object.keys(prev).filter(id=>!(id in next));
     if (!changed.length && !gone.length) return true;
     try {
-      if (changed.length){
-        const body = changed.map(r=>({ id:r.id, doc:r.doc, updated_at:new Date().toISOString() }));
+      for (let i=0; i<changed.length; i+=400){
+        const body = changed.slice(i, i+400).map(r=>({ id:r.id, doc:r.doc, updated_at:new Date().toISOString() }));
         const res = await this._req('/rest/v1/'+t+'?on_conflict=id',
           { method:'POST', body:JSON.stringify(body), headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' } });
         if (!res.ok) throw new Error(await res.text());

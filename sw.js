@@ -1,7 +1,7 @@
 // BuildTrack offline worker.
 // App shell network-first (newest version when online, cached copy when
 // not). Sync calls to Google or Supabase are never cached.
-const CACHE = 'buildtrack-v21';
+const CACHE = 'buildtrack-v22';
 const SHELL = ['./', './index.html', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
