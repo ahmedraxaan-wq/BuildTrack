@@ -222,6 +222,7 @@ tr:hover td{background:var(--bg3)}
     <span style="font-size:13px;color:var(--inf);font-weight:500">☁ Google Sheets sync</span>
     <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid var(--inf);border-radius:6px;font-size:12px;font-family:sans-serif;color:var(--tx)">
     <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:var(--inf);color:var(--btn-tx);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
+    <button onclick="openBackend()" title="Choose where your data is stored" style="padding:6px 10px;background:transparent;color:var(--inf);border:1px solid var(--inf);border-radius:6px;cursor:pointer;font-size:12px">⚙ Storage</button>
     <span id="gs-banner-status" style="font-size:12px"></span>
   </div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -673,6 +674,33 @@ tr:hover td{background:var(--bg3)}
 </div></div>
 
 <!-- RETURN STOCK -->
+<div class="mo" id="modal-backend"><div class="md" style="max-width:540px">
+  <div class="mt">Where your data is stored</div>
+  <div class="fg"><label>Storage</label>
+    <select id="bk-kind" onchange="onBackendKind()">
+      <option value="sheets">Google Sheets</option>
+      <option value="supabase">Supabase database</option>
+    </select>
+  </div>
+  <div id="bk-sheets-note" style="font-size:11px;color:var(--mut);margin-bottom:8px">Your spreadsheet. Every save rewrites whole tables, and only one device should edit at a time.</div>
+  <div id="bk-sb" style="display:none">
+    <div style="font-size:11px;color:var(--mut);margin-bottom:10px">A real database. Saves send only the rows that changed, and access is a proper account instead of a shared password. Create a free project at supabase.com, run the setup SQL once, then fill this in.</div>
+    <div class="fg"><label>Project URL</label><input id="bk-url" placeholder="https://xxxxxxxx.supabase.co"></div>
+    <div class="fg"><label>Anon public key</label><input id="bk-key" placeholder="eyJhbGciOi…"><div style="font-size:10px;color:var(--mut);margin-top:3px">Settings → API → Project API keys → anon public. Safe to keep here; your data is protected by your account.</div></div>
+    <div class="fr">
+      <div class="fg"><label>Email</label><input id="bk-email" autocomplete="username"></div>
+      <div class="fg"><label>Password</label><input id="bk-pass" type="password" autocomplete="current-password"></div>
+    </div>
+    <div id="bk-msg" style="font-size:11px;min-height:16px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn bp" onclick="sbSignIn()">Sign in &amp; use Supabase</button>
+      <button class="btn" onclick="sbMigrate()">Copy everything from Sheets →</button>
+      <button class="btn" onclick="sbSignOut()">Sign out</button>
+    </div>
+    <div id="bk-state" style="font-size:11px;color:var(--mut)"></div>
+  </div>
+  <div class="ma"><button class="btn" onclick="closeModal('modal-backend')">Close</button></div>
+</div></div>
 <div class="mo" id="modal-income"><div class="md" style="max-width:480px">
   <div class="mt">Income received</div>
   <div style="font-size:11px;color:var(--mut);margin-bottom:4px">Every payment counted in this period · <span id="inc-period"></span></div>
@@ -1311,6 +1339,108 @@ function incomeBreakdown(from,to){
       method:e.method||'',holder:e.holder||''});
   }));
   return rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+function openBackend(){
+  document.getElementById('bk-kind').value = SB.active ? 'supabase' : 'sheets';
+  document.getElementById('bk-url').value = SB.url || '';
+  document.getElementById('bk-key').value = SB.key || '';
+  document.getElementById('bk-email').value = SB.email || '';
+  document.getElementById('bk-pass').value = '';
+  document.getElementById('bk-msg').textContent = '';
+  onBackendKind();
+  sbState();
+  openModal('modal-backend');
+}
+function onBackendKind(){
+  const sb = document.getElementById('bk-kind').value === 'supabase';
+  document.getElementById('bk-sb').style.display = sb ? '' : 'none';
+  document.getElementById('bk-sheets-note').style.display = sb ? 'none' : '';
+  if (!sb && SB.active){
+    SB.active = false;
+    try{ localStorage.setItem('bt_backend','sheets'); }catch(e){}
+    sbState();
+  }
+}
+function sbState(){
+  const el = document.getElementById('bk-state'); if (!el) return;
+  const rows = SB.signedIn() ? Object.keys(SB._sigs).reduce((a,k)=>a+Object.keys(SB._sigs[k]||{}).length,0) : 0;
+  el.innerHTML = SB.active
+    ? '● <b style="color:var(--pri)">Supabase is in use</b>' + (SB.email?' as '+SB.email:'') + (rows?' · '+rows+' records':'')
+    : (SB.signedIn() ? '○ Signed in, but Google Sheets is still the active storage.' : '○ Not signed in.');
+}
+async function sbSignIn(){
+  const msg = document.getElementById('bk-msg');
+  SB.url = (document.getElementById('bk-url').value||'').trim().replace(/\/+$/,'');
+  SB.key = (document.getElementById('bk-key').value||'').trim();
+  const email = (document.getElementById('bk-email').value||'').trim();
+  const pass = document.getElementById('bk-pass').value||'';
+  if (!SB.url || !SB.key){ msg.style.color='var(--dgr)'; msg.textContent='Enter the project URL and the anon key.'; return; }
+  if (!email || !pass){ msg.style.color='var(--dgr)'; msg.textContent='Enter your email and password.'; return; }
+  msg.style.color='var(--amb)'; msg.textContent='Signing in…';
+  if (!await SB.signIn(email, pass)){ msg.style.color='var(--dgr)'; msg.textContent='✗ '+(SB.lastError||'Sign in failed'); return; }
+  // Is the database still empty? If so, and your real data is loaded
+  // from Sheets, copy it up rather than loading nothing over it.
+  let empty = false;
+  try { empty = await SB.isEmpty(); }
+  catch (e){
+    msg.style.color='var(--dgr)';
+    msg.innerHTML = '✗ Signed in, but could not read the tables: '+String(e.message||e)+'<br>Have you run the setup SQL in Supabase?';
+    sbState(); return;
+  }
+  if (empty && GS._loadedOnce && SB.localCount() > 1){
+    const n = SB.localCount();
+    if (!confirm('Supabase is empty, and you have '+n+' records loaded from Google Sheets.\n\nCopy them into Supabase now?\n\n(Choose Cancel to start with an empty database instead — your Google Sheet is not changed either way.)')){
+      if (!confirm('Start with an EMPTY Supabase database?\n\nWhat is on screen will be replaced by nothing until you copy your data up.')){
+        msg.textContent=''; sbState(); return;
+      }
+    } else {
+      msg.style.color='var(--amb)'; msg.textContent='Copying '+n+' records into Supabase…';
+      const mig = await SB.migrate();
+      if (!mig.ok){
+        msg.style.color='var(--dgr)';
+        msg.textContent = mig.why || ('✗ Copy failed on: '+(mig.failed||[]).join(', ')+' — '+(SB.lastError||''));
+        sbState(); return;
+      }
+    }
+  }
+  msg.style.color='var(--amb)'; msg.textContent='Loading your data…';
+  SB.active = true;
+  const ok = await SB.loadAll();
+  if (!ok){
+    SB.active = false;
+    msg.style.color='var(--dgr)';
+    msg.innerHTML = '✗ Signed in, but could not read the tables: '+(SB.lastError||'')+'<br>Have you run the setup SQL in Supabase?';
+    sbState(); return;
+  }
+  try{ localStorage.setItem('bt_backend','supabase'); }catch(e){}
+  document.getElementById('bk-pass').value='';
+  msg.style.color='var(--pri)';
+  msg.textContent='✓ Connected — '+SB.localCount()+' records now in Supabase. This is your storage from now on.';
+  sbState(); renderAll();
+}
+async function sbMigrate(){
+  const msg = document.getElementById('bk-msg');
+  if (!SB.signedIn()){ msg.style.color='var(--dgr)'; msg.textContent='Sign in first.'; return; }
+  if (!confirm('Copy everything currently loaded in the app into Supabase?\n\nRecords with the same id are overwritten there. Google Sheets is left untouched, so you keep it as a backup.')) return;
+  msg.style.color='var(--amb)'; msg.textContent='Copying…';
+  const r = await SB.migrate();
+  if (!r.ok){
+    msg.style.color='var(--dgr)';
+    msg.textContent = r.why || ('✗ Some tables failed: '+(r.failed||[]).join(', ')+' — '+(SB.lastError||''));
+    return;
+  }
+  msg.style.color='var(--pri)';
+  msg.textContent='✓ '+(r.count||0)+' records copied. Press "Sign in & use Supabase" to switch over.';
+  sbState();
+}
+function sbSignOut(){
+  SB.signOut(); SB.active=false;
+  try{ localStorage.setItem('bt_backend','sheets'); }catch(e){}
+  document.getElementById('bk-msg').textContent='Signed out. Google Sheets is the active storage again.';
+  sbState();
+}
+function renderAll(){
+  try{ renderDash(); renderSites(); renderFinance(); applyBranding(); }catch(e){}
 }
 function openIncomeBreakdown(){
   const r=dashRange(_dashPeriod);
@@ -2416,8 +2546,8 @@ function saveConsume(){
   GS.save('sites');
   // Push straight away rather than waiting on the debounce, so the
   // banner tells you now whether this actually reached the spreadsheet
-  if(GS.url&&GS._loadedOnce)GS.flush().then(()=>{
-    if((GS._failed||{}).sites)alert('⚠ This did NOT reach Google Sheets, so the materials will come back when you reload.\n\nCheck the sync banner at the top of the Dashboard.');
+  if(syncReady())GS.flush().then(()=>{
+    if((syncBackend()._failed||{}).sites)alert('⚠ This did NOT reach your database, so the materials will come back when you reload.\n\nCheck the sync banner at the top of the Dashboard.');
   });
   renderDetailSiteStock(s);renderDetailLog(s);renderDetailProfit(s);
 }
@@ -3801,6 +3931,477 @@ renderDash();
 
 function tryParseArr(v){try{var r=JSON.parse(v);return Array.isArray(r)?r:[];}catch(e){return[];}}
 function tryParseObj(v){try{var r=JSON.parse(v);return(r&&typeof r==='object'&&!Array.isArray(r))?r:{};}catch(e){return{};}}
+// Shared by every backend: turn loaded rows into the live data object.
+// Nested fields may arrive as JSON text (Google Sheets) or as real
+// objects (Supabase) — both are handled.
+// The loader repairs old or damaged records as it reads them. Those
+// repairs must be saved AFTER the load finishes — never during it,
+// when pushing is still forbidden.
+function _deferSave(table){
+  setTimeout(function(){ try{ GS.save(table); }catch(e){} }, 0);
+}
+function applyLoadedData(d){
+  d = d || {};
+      if (d.sites) {
+        D.sites = d.sites.map(s => ({
+          ...s,
+          id: parseInt(s.id),
+          lq: parseFloat(s.lq)||0,
+          mq: parseFloat(s.mq)||0,
+          expectedStart: normDate(s.expectedStart),
+          log: (typeof s.log==='string'?tryParseArr(s.log):s.log||[]).map(l => ({
+            ...l,
+            empId: l.empId!==undefined?parseInt(l.empId):l.empId,
+            cost: l.cost!==undefined?parseFloat(l.cost):l.cost,
+            qty: l.qty!==undefined?parseFloat(l.qty):l.qty,
+            amount: l.amount!==undefined?parseFloat(l.amount):l.amount,
+            lIn: l.lIn!==undefined?parseFloat(l.lIn):l.lIn,
+            mIn: l.mIn!==undefined?parseFloat(l.mIn):l.mIn,
+            advance: l.advance!==undefined?parseFloat(l.advance):l.advance,
+            date: normDate(l.date)
+          })),
+          ss: typeof s.ss==='string'?tryParseObj(s.ss):s.ss||{},
+          ssWork: typeof s.ssWork==='string'?tryParseObj(s.ssWork):s.ssWork||{},
+          works: (typeof s.works==='string'?tryParseArr(s.works):s.works||[]).map(w => ({
+            ...w,
+            price: parseFloat(w.price)||0,
+            date: normDate(w.date),
+            status: w.status||'active'
+          })),
+          matSettlements: (typeof s.matSettlements==='string'?tryParseArr(s.matSettlements):s.matSettlements||[]).map(m => ({
+            ...m,
+            amount: parseFloat(m.amount)||0,
+            date: normDate(m.date)
+          }))
+        }));
+      }
+      if (d.employees) {
+        D.employees = d.employees.map(e => ({
+          ...e,
+          id: parseInt(e.id),
+          monthly: parseFloat(e.monthly)||0,
+          rate: parseFloat(e.rate)||0,
+          benefits: typeof e.benefits==='string'?tryParseObj(e.benefits):e.benefits
+        }));
+      }
+      if (d.stocks) {
+        let _logBackfill = false;
+        Object.values(d.stocks).forEach(v => {
+          if(typeof v.log==='string'){try{v.log=JSON.parse(v.log);}catch(e){v.log=[];}}
+          if(!Array.isArray(v.log))v.log=[];
+          v.wQty=parseFloat(v.wQty)||0;
+          v.alert=parseFloat(v.alert)||0;
+          v.salePrice=parseFloat(v.salePrice)||0;
+          v.boatCost=parseFloat(v.boatCost)||0;
+          v.whCost=parseFloat(v.whCost)||0;
+          v.wholesale=parseFloat(v.wholesale)||0;
+          // Items created before opening-stock logging existed have
+          // quantity but an empty history — give them a starting point
+          if(!v.log.length && v.wQty>0){
+            v.log.push({date:today(),action:'initial',qty:v.wQty,note:'Opening balance (recorded when movement logging was added)'});
+            _logBackfill = true;
+          }
+        });
+        D.stocks = d.stocks;
+        // Deferred: the load has to finish before anything may be pushed
+        if (_logBackfill) _deferSave('stocks');
+      }
+      if (d.purchaseOrders) {
+        D.purchaseOrders = d.purchaseOrders.map(p => ({
+          ...p,
+          id: parseInt(p.id),
+          date: normDate(p.date),
+          receivedDate: p.receivedDate ? normDate(p.receivedDate) : p.receivedDate,
+          // Coerce item numbers — Sheets can return them as text, which
+          // breaks the "(qtyReceived < qty)" pending check in Receive
+          items: (typeof p.items==='string'?tryParseArr(p.items):p.items||[]).map(i => ({
+            ...i,
+            qty: parseFloat(i.qty)||0,
+            qtyReceived: parseFloat(i.qtyReceived)||0,
+            unitCost: parseFloat(i.unitCost)||0
+          })),
+          payments: (typeof p.payments==='string'?tryParseArr(p.payments):p.payments||[]).map(pm => ({
+            ...pm,
+            amount: parseFloat(pm.amount)||0,
+            date: normDate(pm.date)
+          })),
+          gstApply: p.gstApply===true||p.gstApply==='true'||p.gstApply==='TRUE',
+          gstRate: parseFloat(p.gstRate)||8,
+          gstAmount: parseFloat(p.gstAmount)||0,
+          wholesaleTotal: parseFloat(p.wholesaleTotal)||0,
+          boatTotal: parseFloat(p.boatTotal)||0,
+          whTotal: parseFloat(p.whTotal)||0,
+          total: parseFloat(p.total)||0
+        }));
+      }
+      if (d.sales) {
+        D.sales = d.sales.map(s => ({
+          ...s,
+          id: parseInt(s.id),
+          date: normDate(s.date),
+          items: (typeof s.items==='string'?tryParseArr(s.items):s.items||[]).map(i=>({...i,qty:parseFloat(i.qty)||0,price:parseFloat(i.price)||0})),
+          payments: (typeof s.payments==='string'?tryParseArr(s.payments):s.payments||[]).map(p=>({...p,amount:parseFloat(p.amount)||0,date:normDate(p.date)}))
+        }));
+      }
+      if (d.roster) {
+        D.roster = d.roster.map(r => ({
+          ...r,
+          date: normDate(r.date),
+          empId: parseInt(r.empId),
+          siteId: parseInt(r.siteId),
+          cost: parseFloat(r.cost)||0,
+          working: r.working===true||r.working==='true'||r.working==='TRUE'
+        }));
+      }
+      if (d.fees) {
+        D.fees = d.fees.map(f => ({
+          ...f,
+          id: parseInt(f.id),
+          empId: parseInt(f.empId),
+          amount: parseFloat(f.amount)||0
+        }));
+      }
+      if (d.holidays) {
+        D.holidays = d.holidays.map(h => ({
+          ...h,
+          id: parseInt(h.id),
+          date: normDate(h.date)
+        }));
+      }
+      if (d.machinery) {
+        D.machinery = d.machinery.map(m => ({
+          ...m,
+          id: parseInt(m.id),
+          cost: parseFloat(m.cost)||0,
+          salePrice: parseFloat(m.salePrice)||0,
+          date: normDate(m.date),
+          saleDate: normDate(m.saleDate)
+        }));
+      }
+      if (d.leave) {
+        D.leave = d.leave.map(l => ({
+          ...l,
+          id: parseInt(l.id),
+          empId: parseInt(l.empId),
+          date: normDate(l.date)
+        }));
+      }
+      if (d.vendors) {
+        D.vendors = d.vendors.map(v => ({ ...v, id: parseInt(v.id), name: (v.name||'').toString() }));
+      }
+      D.vendors = D.vendors || [];
+      if (d.settings && d.settings[0]) D.company = { ...d.settings[0] };
+      D.company = D.company || {};
+      if (d.expenses) {
+        D.expenses = d.expenses.map(x => ({ ...x, id: parseInt(x.id)||0, amount: parseFloat(x.amount)||0, date: normDate(x.date) }));
+        D.nextExpId = Math.max(0, ...D.expenses.map(x => x.id||0)) + 1;
+        if (!Number.isFinite(D.nextExpId)) D.nextExpId = 1;
+      }
+      D.expenses = D.expenses || [];
+      if (d.holders) {
+        D.holders = d.holders.map(h => ({ ...h, id: parseInt(h.id), name: (h.name||'').toString() }));
+      }
+      D.holders = D.holders || [];
+      if (d.cashflow) {
+        D.cashflow = d.cashflow.map(c => ({
+          ...c, id: parseInt(c.id), date: normDate(c.date), amount: parseFloat(c.amount)||0
+        }));
+      }
+      D.cashflow = D.cashflow || [];
+      // Repair any purchase orders that were saved without a valid id,
+      // or that share the SAME id (possible in older versions where
+      // nextPOId was uninitialised — both POs got id NaN, so clicking
+      // "Receive" on the second PO silently opened the first one)
+      D.purchaseOrders = D.purchaseOrders || [];
+      let _maxPO = 0;
+      D.purchaseOrders.forEach(p => { if (Number.isFinite(p.id)) _maxPO = Math.max(_maxPO, p.id); });
+      const _seenPO = new Set();
+      let _repairedPO = false;
+      D.purchaseOrders.forEach(p => {
+        if (!Number.isFinite(p.id) || _seenPO.has(p.id)) { p.id = ++_maxPO; _repairedPO = true; }
+        _seenPO.add(p.id);
+      });
+      if (_repairedPO) _deferSave('purchaseOrders');
+      // Backfill: warehouse material issues recorded before auto-pricing
+      // existed have qty but zero cost — price them at the material's
+      // current sale price so site costs and settlements are correct
+      let _costBackfill = false;
+      (D.sites||[]).forEach(s => (s.log||[]).forEach(e => {
+        if (e.type==='material' && e.matKey && (e.qty||0)>0 && !((parseFloat(e.cost)||0)>0) && D.stocks[e.matKey]) {
+          const sp = D.stocks[e.matKey].salePrice||0;
+          if (sp>0) { e.unitPrice = sp; e.cost = Math.round((e.qty*sp)*100)/100; _costBackfill = true; }
+        }
+      }));
+      if (_costBackfill) _deferSave('sites');
+      // Self-heal panels that read data lost by older sync bugs:
+      // 1) on-site material quantities (ss) — rebuilt from material/return
+      //    log entries when ss came back empty
+      // 2) roster rows — rebuilt from roster-cost log entries (removeRoster
+      //    always deletes both together, so a log entry without a roster
+      //    row can only mean the row was lost)
+      let _ssHealed = false, _rosterHealed = false;
+      D.roster = D.roster || [];
+      (D.sites||[]).forEach(s => {
+        s.ss = s.ss || {};
+        Object.keys(s.ss).forEach(k => { s.ss[k] = parseFloat(s.ss[k]) || 0; });   // "14"+10 would concatenate
+        if (!Object.values(s.ss).some(v => v > 0)) {
+          const derived = {};
+          (s.log||[]).forEach(e => {
+            if (e.type==='material' && e.matKey && (parseFloat(e.qty)||0)>0) derived[e.matKey]=(derived[e.matKey]||0)+parseFloat(e.qty);
+            if (e.type==='return'   && e.matKey && (parseFloat(e.qty)||0)>0) derived[e.matKey]=(derived[e.matKey]||0)-parseFloat(e.qty);
+          });
+          Object.keys(derived).forEach(k => { if (derived[k]>0.0001) { s.ss[k]=Math.round(derived[k]*100)/100; _ssHealed=true; } });
+        }
+        (s.log||[]).forEach(e => {
+          if (e.type==='roster-cost' && e.date && e.empId!==undefined && e.empId!==null) {
+            const empId = parseInt(e.empId);
+            if (Number.isFinite(empId) && !D.roster.some(r => r.date===e.date && r.empId===empId && r.siteId===s.id)) {
+              D.roster.push({ date: e.date, empId, siteId: s.id, cost: parseFloat(e.cost)||0, working: true });
+              _rosterHealed = true;
+            }
+          }
+        });
+      });
+      if (_ssHealed) _deferSave('sites');
+      if (_rosterHealed) { D.roster.sort((a,b)=>String(a.date).localeCompare(String(b.date))); _deferSave('roster'); }
+      // Stamp legacy vendor-name-only credit purchases with a vendor id
+      // so payables group correctly in the vendor registry
+      let _vendorHealed = false;
+      (D.sites||[]).forEach(s => (s.log||[]).forEach(e => {
+        if (isExtPurchase(e) && e.vendor && e.vendorId==null) {
+          const v = findOrCreateVendor(e.vendor);
+          if (v) { e.vendorId = v.id; e.vendor = v.name; _vendorHealed = true; }
+        }
+      }));
+      if (_vendorHealed) { _deferSave('sites'); _deferSave('vendors'); }
+      // Recalculate next IDs (NaN-proof: skip records with broken ids)
+      const _next = arr => Math.max(1, ...(arr || []).filter(x => Number.isFinite(x.id)).map(x => x.id + 1));
+      D.nextSiteId = Math.max(_next(D.sites), D.nextSiteId || 1);
+      D.nextEmpId  = Math.max(_next(D.employees), D.nextEmpId || 1);
+      D.nextPOId   = Math.max(_next(D.purchaseOrders), D.nextPOId || 1);
+      D.nextSaleId = Math.max(_next(D.sales), D.nextSaleId || 1);
+      D.nextHolId  = Math.max(_next(D.holidays), D.nextHolId || 1);
+      D.nextVendorId = Math.max(_next(D.vendors), D.nextVendorId || 1);
+      D.nextHolderId = Math.max(_next(D.holders), D.nextHolderId || 1);
+      D.nextCashId   = Math.max(_next(D.cashflow), D.nextCashId || 1);
+}
+
+
+// ─── Supabase backend ───────────────────────────────────────────────
+// Same interface as the Sheets backend, so nothing else in the app
+// changes. The difference is underneath: a save writes ONLY the rows
+// that actually changed, and access is a real account rather than a
+// shared password.
+var SB = {
+  url:'', key:'', token:'', refresh:'', email:'',
+  active:false, status:'idle', _loadedOnce:false, lastError:null,
+  _sigs:{}, _failed:{}, _timers:{},
+  TBL:{sites:'sites',employees:'employees',stocks:'stocks',purchaseOrders:'purchase_orders',
+       sales:'sales',roster:'roster',fees:'fees',holidays:'holidays',machinery:'machinery',
+       leave:'leave_records',vendors:'vendors',holders:'holders',cashflow:'cashflow',
+       settings:'settings',expenses:'expenses'},
+  tables(){ return Object.keys(this.TBL); },
+  configured(){ return !!(this.url && this.key); },
+  signedIn(){ return !!this.token; },
+  _setStatus(s){ GS._setStatus.call(this, s); },
+  _headers(extra){
+    return Object.assign({
+      'apikey': this.key,
+      'Authorization': 'Bearer ' + (this.token || this.key),
+      'Content-Type': 'application/json'
+    }, extra || {});
+  },
+  // Access tokens expire after an hour; renew once and retry rather
+  // than throwing the person back to a sign-in screen mid-task
+  async _req(path, opts, retried){
+    opts = opts || {};
+    opts.headers = this._headers(opts.headers);
+    let res;
+    try { res = await GS._fetchT(this.url + path, opts); }
+    catch (e) { this.lastError = 'network'; throw e; }
+    if (res.status === 401 && !retried && this.refresh) {
+      if (await this.renew()) return this._req(path, { method: opts.method, body: opts.body, headers: opts.rawHeaders }, true);
+    }
+    return res;
+  },
+  async signIn(email, password){
+    this.lastError = null;
+    try {
+      const res = await GS._fetchT(this.url + '/auth/v1/token?grant_type=password', {
+        method:'POST', headers:{ 'apikey': this.key, 'Content-Type':'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const j = await res.json();
+      if (!res.ok || !j.access_token) {
+        this.lastError = (j && (j.error_description || j.msg || j.error)) || 'Sign in failed';
+        return false;
+      }
+      this.token = j.access_token; this.refresh = j.refresh_token || ''; this.email = email;
+      this._remember();
+      return true;
+    } catch (e) { this.lastError = 'Could not reach Supabase — check the project URL.'; return false; }
+  },
+  async renew(){
+    if (!this.refresh) return false;
+    try {
+      const res = await GS._fetchT(this.url + '/auth/v1/token?grant_type=refresh_token', {
+        method:'POST', headers:{ 'apikey': this.key, 'Content-Type':'application/json' },
+        body: JSON.stringify({ refresh_token: this.refresh })
+      });
+      const j = await res.json();
+      if (!res.ok || !j.access_token) return false;
+      this.token = j.access_token; if (j.refresh_token) this.refresh = j.refresh_token;
+      this._remember();
+      return true;
+    } catch (e) { return false; }
+  },
+  signOut(){
+    this.token=''; this.refresh=''; this._loadedOnce=false; this._sigs={};
+    try{ localStorage.removeItem('bt_sb'); }catch(e){}
+  },
+  _remember(){
+    try{ localStorage.setItem('bt_sb', JSON.stringify({
+      url:this.url, key:this.key, token:this.token, refresh:this.refresh, email:this.email
+    })); }catch(e){}
+  },
+  // Every record as {id, doc}. The id is what makes row-level saving
+  // possible — roster rows have none of their own, so they take a
+  // composite one.
+  _rows(table){
+    const out=[]; const push=(id,doc)=>out.push({ id:String(id), doc });
+    if (table==='stocks'){ Object.keys(D.stocks||{}).forEach(k=>push(k, D.stocks[k])); return out; }
+    if (table==='settings'){ push('company', D.company||{}); return out; }
+    if (table==='roster'){ (D.roster||[]).forEach(r=>push([r.date,r.empId,r.siteId].join('|'), r)); return out; }
+    const arr = GS._tableData(table) || [];
+    arr.forEach((x,i)=>push((x && x.id!==undefined && x.id!==null) ? x.id : ('row'+i), x));
+    return out;
+  },
+  async _syncTable(table){
+    const t = this.TBL[table]; if (!t) return true;
+    const rows = this._rows(table);
+    const prev = this._sigs[table] || {};
+    const next = {}, changed = [];
+    rows.forEach(r=>{
+      const sig = GS._sig(JSON.stringify(r.doc));
+      next[r.id] = sig;
+      if (prev[r.id] !== sig) changed.push(r);
+    });
+    const gone = Object.keys(prev).filter(id=>!(id in next));
+    if (!changed.length && !gone.length) return true;
+    try {
+      if (changed.length){
+        const body = changed.map(r=>({ id:r.id, doc:r.doc, updated_at:new Date().toISOString() }));
+        const res = await this._req('/rest/v1/'+t+'?on_conflict=id',
+          { method:'POST', body:JSON.stringify(body), headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' } });
+        if (!res.ok) throw new Error(await res.text());
+      }
+      if (gone.length){
+        const list = gone.map(id=>'"'+String(id).replace(/"/g,'')+'"').join(',');
+        const res = await this._req('/rest/v1/'+t+'?id=in.('+encodeURIComponent(list)+')',
+          { method:'DELETE', headers:{ 'Prefer':'return=minimal' } });
+        if (!res.ok) throw new Error(await res.text());
+      }
+      this._sigs[table] = next; delete this._failed[table];
+      return true;
+    } catch (e) {
+      this._failed[table] = true; this.lastError = String((e && e.message) || e);
+      return false;
+    }
+  },
+  save(table){
+    if (!this.active || !this._loadedOnce) return;
+    this._timers = this._timers || {};
+    if (this._timers[table]) clearTimeout(this._timers[table]);
+    this._timers[table] = setTimeout(()=>{
+      const due = Object.keys(this._timers);
+      due.forEach(t=>clearTimeout(this._timers[t]));
+      this._timers = {};
+      this.saveMany(due);
+    }, 800);
+  },
+  async saveMany(list){
+    if (!this.active) return [];
+    if (!this._loadedOnce) { this._setStatus('idle'); return []; }
+    this._setStatus('saving');
+    const failed = [];
+    for (const t of list){ const ok = await this._syncTable(t); if (!ok) failed.push(t); }
+    this._setStatus(failed.length ? 'error' : 'ok');
+    return failed;
+  },
+  async saveAll(){ return this.saveMany(this.tables()); },
+  async flush(){
+    const pending = Object.keys(this._timers || {});
+    pending.forEach(t=>clearTimeout(this._timers[t]));
+    this._timers = {};
+    if (pending.length) await this.saveMany(pending);
+  },
+  async isEmpty(){
+    for (const t of ['sites','employees','stocks','sales','settings']){
+      const res = await this._req('/rest/v1/'+this.TBL[t]+'?select=id&limit=1', { method:'GET' });
+      if (!res.ok) throw new Error(this.TBL[t]+': '+(await res.text()));
+      if ((await res.json()).length) return false;
+    }
+    return true;
+  },
+  localCount(){
+    let n = 0;
+    this.tables().forEach(t=>{ n += this._rows(t).length; });
+    return n;
+  },
+  async loadAll(){
+    if (!this.configured()) return false;
+    this._setStatus('loading');
+    try {
+      const names = this.tables();
+      const results = await Promise.all(names.map(async app=>{
+        // Page through, so a long roster history is never truncated
+        const PAGE = 1000; let from = 0, rows = [];
+        for (;;){
+          const res = await this._req('/rest/v1/'+this.TBL[app]+'?select=id,doc&order=id&offset='+from+'&limit='+PAGE, { method:'GET' });
+          if (!res.ok) throw new Error(this.TBL[app]+': '+(await res.text()));
+          const page = await res.json();
+          rows = rows.concat(page);
+          if (page.length < PAGE) break;
+          from += PAGE;
+          if (from > 200000) break;
+        }
+        return { app, rows };
+      }));
+      const d = {};
+      results.forEach(({app, rows})=>{
+        const sig = {};
+        rows.forEach(r=>{ sig[String(r.id)] = GS._sig(JSON.stringify(r.doc || {})); });
+        this._sigs[app] = sig;
+        if (app === 'stocks'){ const o={}; rows.forEach(r=>{ o[r.id] = r.doc || {}; }); d.stocks = o; }
+        else d[app] = rows.map(r=>r.doc || {});
+      });
+      applyLoadedData(d);
+      this._loadedOnce = true; GS._loadedOnce = true;
+      this._setStatus('ok');
+      return true;
+    } catch (e) {
+      this.lastError = String((e && e.message) || e);
+      this._setStatus('error');
+      return false;
+    }
+  },
+  // Copy what is on screen into Supabase. Only allowed once the data
+  // has genuinely been loaded from somewhere, so the sample data can
+  // never be written over a real database.
+  async migrate(){
+    if (!this.signedIn()) return { ok:false, why:'Sign in to Supabase first.' };
+    if (!GS._loadedOnce && !this._loadedOnce)
+      return { ok:false, why:'Connect to Google Sheets and let your data load first — there is nothing to copy yet.' };
+    const count = this.localCount();
+    if (count < 2) return { ok:false, why:'There is no data loaded to copy.' };
+    this._sigs = {}; this._loadedOnce = true;
+    const wasActive = this.active; this.active = true;
+    const failed = await this.saveAll();
+    this.active = wasActive;
+    return { ok: !failed.length, failed, count };
+  }
+};
+
 var GS = {
   url: '',
   saving: false,
@@ -4044,247 +4645,7 @@ var GS = {
       const r = await this.call({ action: 'loadAll' });
       if (!r || !r.ok) { this._setStatus('error'); return false; }
       const d = r.data;
-      if (d.sites) {
-        D.sites = d.sites.map(s => ({
-          ...s,
-          id: parseInt(s.id),
-          lq: parseFloat(s.lq)||0,
-          mq: parseFloat(s.mq)||0,
-          expectedStart: normDate(s.expectedStart),
-          log: (typeof s.log==='string'?tryParseArr(s.log):s.log||[]).map(l => ({
-            ...l,
-            empId: l.empId!==undefined?parseInt(l.empId):l.empId,
-            cost: l.cost!==undefined?parseFloat(l.cost):l.cost,
-            qty: l.qty!==undefined?parseFloat(l.qty):l.qty,
-            amount: l.amount!==undefined?parseFloat(l.amount):l.amount,
-            lIn: l.lIn!==undefined?parseFloat(l.lIn):l.lIn,
-            mIn: l.mIn!==undefined?parseFloat(l.mIn):l.mIn,
-            advance: l.advance!==undefined?parseFloat(l.advance):l.advance,
-            date: normDate(l.date)
-          })),
-          ss: typeof s.ss==='string'?tryParseObj(s.ss):s.ss||{},
-          ssWork: typeof s.ssWork==='string'?tryParseObj(s.ssWork):s.ssWork||{},
-          works: (typeof s.works==='string'?tryParseArr(s.works):s.works||[]).map(w => ({
-            ...w,
-            price: parseFloat(w.price)||0,
-            date: normDate(w.date),
-            status: w.status||'active'
-          })),
-          matSettlements: (typeof s.matSettlements==='string'?tryParseArr(s.matSettlements):s.matSettlements||[]).map(m => ({
-            ...m,
-            amount: parseFloat(m.amount)||0,
-            date: normDate(m.date)
-          }))
-        }));
-      }
-      if (d.employees) {
-        D.employees = d.employees.map(e => ({
-          ...e,
-          id: parseInt(e.id),
-          monthly: parseFloat(e.monthly)||0,
-          rate: parseFloat(e.rate)||0,
-          benefits: typeof e.benefits==='string'?tryParseObj(e.benefits):e.benefits
-        }));
-      }
-      if (d.stocks) {
-        let _logBackfill = false;
-        Object.values(d.stocks).forEach(v => {
-          if(typeof v.log==='string'){try{v.log=JSON.parse(v.log);}catch(e){v.log=[];}}
-          if(!Array.isArray(v.log))v.log=[];
-          v.wQty=parseFloat(v.wQty)||0;
-          v.alert=parseFloat(v.alert)||0;
-          v.salePrice=parseFloat(v.salePrice)||0;
-          v.boatCost=parseFloat(v.boatCost)||0;
-          v.whCost=parseFloat(v.whCost)||0;
-          v.wholesale=parseFloat(v.wholesale)||0;
-          // Items created before opening-stock logging existed have
-          // quantity but an empty history — give them a starting point
-          if(!v.log.length && v.wQty>0){
-            v.log.push({date:today(),action:'initial',qty:v.wQty,note:'Opening balance (recorded when movement logging was added)'});
-            _logBackfill = true;
-          }
-        });
-        D.stocks = d.stocks;
-        if (_logBackfill) this.save('stocks');
-      }
-      if (d.purchaseOrders) {
-        D.purchaseOrders = d.purchaseOrders.map(p => ({
-          ...p,
-          id: parseInt(p.id),
-          date: normDate(p.date),
-          receivedDate: p.receivedDate ? normDate(p.receivedDate) : p.receivedDate,
-          // Coerce item numbers — Sheets can return them as text, which
-          // breaks the "(qtyReceived < qty)" pending check in Receive
-          items: (typeof p.items==='string'?tryParseArr(p.items):p.items||[]).map(i => ({
-            ...i,
-            qty: parseFloat(i.qty)||0,
-            qtyReceived: parseFloat(i.qtyReceived)||0,
-            unitCost: parseFloat(i.unitCost)||0
-          })),
-          payments: (typeof p.payments==='string'?tryParseArr(p.payments):p.payments||[]).map(pm => ({
-            ...pm,
-            amount: parseFloat(pm.amount)||0,
-            date: normDate(pm.date)
-          })),
-          gstApply: p.gstApply===true||p.gstApply==='true'||p.gstApply==='TRUE',
-          gstRate: parseFloat(p.gstRate)||8,
-          gstAmount: parseFloat(p.gstAmount)||0,
-          wholesaleTotal: parseFloat(p.wholesaleTotal)||0,
-          boatTotal: parseFloat(p.boatTotal)||0,
-          whTotal: parseFloat(p.whTotal)||0,
-          total: parseFloat(p.total)||0
-        }));
-      }
-      if (d.sales) {
-        D.sales = d.sales.map(s => ({
-          ...s,
-          id: parseInt(s.id),
-          date: normDate(s.date),
-          items: (typeof s.items==='string'?tryParseArr(s.items):s.items||[]).map(i=>({...i,qty:parseFloat(i.qty)||0,price:parseFloat(i.price)||0})),
-          payments: (typeof s.payments==='string'?tryParseArr(s.payments):s.payments||[]).map(p=>({...p,amount:parseFloat(p.amount)||0,date:normDate(p.date)}))
-        }));
-      }
-      if (d.roster) {
-        D.roster = d.roster.map(r => ({
-          ...r,
-          date: normDate(r.date),
-          empId: parseInt(r.empId),
-          siteId: parseInt(r.siteId),
-          cost: parseFloat(r.cost)||0,
-          working: r.working===true||r.working==='true'||r.working==='TRUE'
-        }));
-      }
-      if (d.fees) {
-        D.fees = d.fees.map(f => ({
-          ...f,
-          id: parseInt(f.id),
-          empId: parseInt(f.empId),
-          amount: parseFloat(f.amount)||0
-        }));
-      }
-      if (d.holidays) {
-        D.holidays = d.holidays.map(h => ({
-          ...h,
-          id: parseInt(h.id),
-          date: normDate(h.date)
-        }));
-      }
-      if (d.machinery) {
-        D.machinery = d.machinery.map(m => ({
-          ...m,
-          id: parseInt(m.id),
-          cost: parseFloat(m.cost)||0,
-          salePrice: parseFloat(m.salePrice)||0,
-          date: normDate(m.date),
-          saleDate: normDate(m.saleDate)
-        }));
-      }
-      if (d.leave) {
-        D.leave = d.leave.map(l => ({
-          ...l,
-          id: parseInt(l.id),
-          empId: parseInt(l.empId),
-          date: normDate(l.date)
-        }));
-      }
-      if (d.vendors) {
-        D.vendors = d.vendors.map(v => ({ ...v, id: parseInt(v.id), name: (v.name||'').toString() }));
-      }
-      D.vendors = D.vendors || [];
-      if (d.settings && d.settings[0]) D.company = { ...d.settings[0] };
-      D.company = D.company || {};
-      if (d.expenses) {
-        D.expenses = d.expenses.map(x => ({ ...x, id: parseInt(x.id)||0, amount: parseFloat(x.amount)||0, date: normDate(x.date) }));
-        D.nextExpId = Math.max(0, ...D.expenses.map(x => x.id||0)) + 1;
-        if (!Number.isFinite(D.nextExpId)) D.nextExpId = 1;
-      }
-      D.expenses = D.expenses || [];
-      if (d.holders) {
-        D.holders = d.holders.map(h => ({ ...h, id: parseInt(h.id), name: (h.name||'').toString() }));
-      }
-      D.holders = D.holders || [];
-      if (d.cashflow) {
-        D.cashflow = d.cashflow.map(c => ({
-          ...c, id: parseInt(c.id), date: normDate(c.date), amount: parseFloat(c.amount)||0
-        }));
-      }
-      D.cashflow = D.cashflow || [];
-      // Repair any purchase orders that were saved without a valid id,
-      // or that share the SAME id (possible in older versions where
-      // nextPOId was uninitialised — both POs got id NaN, so clicking
-      // "Receive" on the second PO silently opened the first one)
-      D.purchaseOrders = D.purchaseOrders || [];
-      let _maxPO = 0;
-      D.purchaseOrders.forEach(p => { if (Number.isFinite(p.id)) _maxPO = Math.max(_maxPO, p.id); });
-      const _seenPO = new Set();
-      let _repairedPO = false;
-      D.purchaseOrders.forEach(p => {
-        if (!Number.isFinite(p.id) || _seenPO.has(p.id)) { p.id = ++_maxPO; _repairedPO = true; }
-        _seenPO.add(p.id);
-      });
-      if (_repairedPO) this.save('purchaseOrders');
-      // Backfill: warehouse material issues recorded before auto-pricing
-      // existed have qty but zero cost — price them at the material's
-      // current sale price so site costs and settlements are correct
-      let _costBackfill = false;
-      (D.sites||[]).forEach(s => (s.log||[]).forEach(e => {
-        if (e.type==='material' && e.matKey && (e.qty||0)>0 && !((parseFloat(e.cost)||0)>0) && D.stocks[e.matKey]) {
-          const sp = D.stocks[e.matKey].salePrice||0;
-          if (sp>0) { e.unitPrice = sp; e.cost = Math.round((e.qty*sp)*100)/100; _costBackfill = true; }
-        }
-      }));
-      if (_costBackfill) this.save('sites');
-      // Self-heal panels that read data lost by older sync bugs:
-      // 1) on-site material quantities (ss) — rebuilt from material/return
-      //    log entries when ss came back empty
-      // 2) roster rows — rebuilt from roster-cost log entries (removeRoster
-      //    always deletes both together, so a log entry without a roster
-      //    row can only mean the row was lost)
-      let _ssHealed = false, _rosterHealed = false;
-      D.roster = D.roster || [];
-      (D.sites||[]).forEach(s => {
-        s.ss = s.ss || {};
-        Object.keys(s.ss).forEach(k => { s.ss[k] = parseFloat(s.ss[k]) || 0; });   // "14"+10 would concatenate
-        if (!Object.values(s.ss).some(v => v > 0)) {
-          const derived = {};
-          (s.log||[]).forEach(e => {
-            if (e.type==='material' && e.matKey && (parseFloat(e.qty)||0)>0) derived[e.matKey]=(derived[e.matKey]||0)+parseFloat(e.qty);
-            if (e.type==='return'   && e.matKey && (parseFloat(e.qty)||0)>0) derived[e.matKey]=(derived[e.matKey]||0)-parseFloat(e.qty);
-          });
-          Object.keys(derived).forEach(k => { if (derived[k]>0.0001) { s.ss[k]=Math.round(derived[k]*100)/100; _ssHealed=true; } });
-        }
-        (s.log||[]).forEach(e => {
-          if (e.type==='roster-cost' && e.date && e.empId!==undefined && e.empId!==null) {
-            const empId = parseInt(e.empId);
-            if (Number.isFinite(empId) && !D.roster.some(r => r.date===e.date && r.empId===empId && r.siteId===s.id)) {
-              D.roster.push({ date: e.date, empId, siteId: s.id, cost: parseFloat(e.cost)||0, working: true });
-              _rosterHealed = true;
-            }
-          }
-        });
-      });
-      if (_ssHealed) this.save('sites');
-      if (_rosterHealed) { D.roster.sort((a,b)=>String(a.date).localeCompare(String(b.date))); this.save('roster'); }
-      // Stamp legacy vendor-name-only credit purchases with a vendor id
-      // so payables group correctly in the vendor registry
-      let _vendorHealed = false;
-      (D.sites||[]).forEach(s => (s.log||[]).forEach(e => {
-        if (isExtPurchase(e) && e.vendor && e.vendorId==null) {
-          const v = findOrCreateVendor(e.vendor);
-          if (v) { e.vendorId = v.id; e.vendor = v.name; _vendorHealed = true; }
-        }
-      }));
-      if (_vendorHealed) { this.save('sites'); this.save('vendors'); }
-      // Recalculate next IDs (NaN-proof: skip records with broken ids)
-      const _next = arr => Math.max(1, ...(arr || []).filter(x => Number.isFinite(x.id)).map(x => x.id + 1));
-      D.nextSiteId = Math.max(_next(D.sites), D.nextSiteId || 1);
-      D.nextEmpId  = Math.max(_next(D.employees), D.nextEmpId || 1);
-      D.nextPOId   = Math.max(_next(D.purchaseOrders), D.nextPOId || 1);
-      D.nextSaleId = Math.max(_next(D.sales), D.nextSaleId || 1);
-      D.nextHolId  = Math.max(_next(D.holidays), D.nextHolId || 1);
-      D.nextVendorId = Math.max(_next(D.vendors), D.nextVendorId || 1);
-      D.nextHolderId = Math.max(_next(D.holders), D.nextHolderId || 1);
-      D.nextCashId   = Math.max(_next(D.cashflow), D.nextCashId || 1);
+      applyLoadedData(d);
       this._setStatus('ok');
       this._loadedOnce = true;   // safe to push from this session now
       return true;
@@ -4381,6 +4742,18 @@ var GS = {
 // Once connected, the button becomes "Save all now" and PUSHES all
 // local data UP instead — loading again mid-session would overwrite
 // any local change whose auto-save hadn't finished.
+// Route the app's existing sync calls to whichever backend is in use
+(function(){
+  const native = { save:GS.save, saveMany:GS.saveMany, saveAll:GS.saveAll, flush:GS.flush };
+  GS._native = native;
+  GS.save     = function(t){ return SB.active ? SB.save(t)      : native.save.call(GS, t); };
+  GS.saveMany = function(l){ return SB.active ? SB.saveMany(l)  : native.saveMany.call(GS, l); };
+  GS.saveAll  = function(){  return SB.active ? SB.saveAll()    : native.saveAll.call(GS); };
+  GS.flush    = function(){  return SB.active ? SB.flush()      : native.flush.call(GS); };
+})();
+function syncBackend(){ return SB.active ? SB : GS; }
+function syncReady(){ return SB.active ? SB._loadedOnce : !!(GS.url && GS._loadedOnce); }
+
 async function gsBannerTest() {
   var url = document.getElementById('gs-url-inline').value.trim();
   var statusEl = document.getElementById('gs-banner-status');
@@ -5505,10 +5878,30 @@ function saveDayWorker(){
     var au=localStorage.getItem('bt_auth');
     if(au){au=JSON.parse(au);GS.authU=au.u;GS.authT=au.t;}
   }catch(e){}
+  var _sbBooted=false;
   try{
-    var saved=localStorage.getItem('bt_gs_url');
-    var inp=document.getElementById('gs-url-inline');
-    if(saved && inp && !inp.value){ inp.value=saved; gsBannerTest(); }
+    var sbRaw=localStorage.getItem('bt_sb');
+    if(sbRaw){
+      var sb=JSON.parse(sbRaw);
+      SB.url=sb.url||'';SB.key=sb.key||'';SB.token=sb.token||'';SB.refresh=sb.refresh||'';SB.email=sb.email||'';
+    }
+    if(localStorage.getItem('bt_backend')==='supabase' && SB.configured() && SB.signedIn()){
+      SB.active=true; _sbBooted=true;
+      SB.loadAll().then(function(ok){
+        if(ok){ renderAll(); }
+        else {
+          var el=document.getElementById('gs-banner-status');
+          if(el){ el.innerHTML='✗ Could not reach Supabase — press ⚙ Storage to sign in again.'; el.style.color='var(--dgr)'; }
+        }
+      });
+    }
+  }catch(e){}
+  try{
+    if(!_sbBooted){
+      var saved=localStorage.getItem('bt_gs_url');
+      var inp=document.getElementById('gs-url-inline');
+      if(saved && inp && !inp.value){ inp.value=saved; gsBannerTest(); }
+    }
   }catch(e){}
   try{
     var th=null;try{th=localStorage.getItem('bt_theme');}catch(e){}
