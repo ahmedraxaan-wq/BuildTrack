@@ -219,7 +219,7 @@ tr:hover td{background:var(--bg3)}
 <div id="page-dashboard" class="page active">
   <div class="pt">Overview</div>
   <div id="gs-banner" style="background:var(--inf-bg);border:1.5px solid var(--inf);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(24,95,165,0.08)">
-    <span style="font-size:13px;color:var(--inf);font-weight:500">☁ Google Sheets sync</span>
+    <span id="sync-label" style="font-size:13px;color:var(--inf);font-weight:500">☁ Google Sheets sync</span>
     <input id="gs-url-inline" placeholder="Paste your Web App URL here — https://script.google.com/macros/s/.../exec" style="flex:1;min-width:260px;padding:6px 10px;border:1px solid var(--inf);border-radius:6px;font-size:12px;font-family:sans-serif;color:var(--tx)">
     <button id="gs-banner-btn" onclick="gsBannerTest()" style="padding:6px 14px;background:var(--inf);color:var(--btn-tx);border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">Connect</button>
     <button onclick="openBackend()" title="Choose where your data is stored" style="padding:6px 10px;background:transparent;color:var(--inf);border:1px solid var(--inf);border-radius:6px;cursor:pointer;font-size:12px">⚙ Storage</button>
@@ -1353,6 +1353,7 @@ function openBackend(){
 }
 function onBackendKind(){
   const sb = document.getElementById('bk-kind').value === 'supabase';
+  setTimeout(applyBackendBanner,0);
   document.getElementById('bk-sb').style.display = sb ? '' : 'none';
   document.getElementById('bk-sheets-note').style.display = sb ? 'none' : '';
   if (!sb && SB.active){
@@ -1416,7 +1417,7 @@ async function sbSignIn(){
   document.getElementById('bk-pass').value='';
   msg.style.color='var(--pri)';
   msg.textContent='✓ Connected — '+SB.localCount()+' records now in Supabase. This is your storage from now on.';
-  sbState(); renderAll();
+  sbState(); applyBackendBanner(); renderAll();
 }
 async function sbMigrate(){
   const msg = document.getElementById('bk-msg');
@@ -1437,7 +1438,7 @@ function sbSignOut(){
   SB.signOut(); SB.active=false;
   try{ localStorage.setItem('bt_backend','sheets'); }catch(e){}
   document.getElementById('bk-msg').textContent='Signed out. Google Sheets is the active storage again.';
-  sbState();
+  sbState(); applyBackendBanner();
 }
 function renderAll(){
   try{ renderDash(); renderSites(); renderFinance(); applyBranding(); }catch(e){}
@@ -4792,9 +4793,49 @@ var GS = {
   GS.flush    = function(){  return SB.active ? SB.flush()      : native.flush.call(GS); };
 })();
 function syncBackend(){ return SB.active ? SB : GS; }
+// The banner must never claim a destination that is not the one being
+// written to — that is the whole point of having it.
+function applyBackendBanner(){
+  const lbl = document.getElementById('sync-label');
+  const inp = document.getElementById('gs-url-inline');
+  const btn = document.getElementById('gs-banner-btn');
+  if (!lbl) return;
+  if (SB.active){
+    lbl.innerHTML = '🗄 Supabase' + (SB.email ? ' · <span style="font-weight:400">'+SB.email+'</span>' : '');
+    if (inp) inp.style.display = 'none';
+    if (btn) btn.textContent = '💾 Save all now';
+  } else {
+    lbl.textContent = '☁ Google Sheets sync';
+    if (inp) inp.style.display = '';
+  }
+}
 function syncReady(){ return SB.active ? SB._loadedOnce : !!(GS.url && GS._loadedOnce); }
 
 async function gsBannerTest() {
+  if (SB.active) {
+    const el = document.getElementById('gs-banner-status');
+    const b  = document.getElementById('gs-banner-btn');
+    if (b) b.textContent = '💾 Save all now';
+    if (!SB._loadedOnce){
+      el.textContent = 'Loading your data…'; el.style.color = 'var(--amb)';
+      const ok = await SB.loadAll();
+      el.textContent = ok ? '✓ Loaded from Supabase' : ('✗ Could not reach Supabase — ' + (SB.lastError||''));
+      el.style.color = ok ? 'var(--pri)' : 'var(--dgr)';
+      if (ok) renderAll();
+      return;
+    }
+    el.textContent = 'Saving all data…'; el.style.color = 'var(--amb)';
+    await SB.flush();
+    const failed = await SB.saveAll();
+    if (failed.length){
+      el.innerHTML = '⚠ Could NOT save: <b>'+failed.join(', ')+'</b>. Keep this tab open — your data is still on screen. '+(SB.lastError||'');
+      el.style.color = 'var(--dgr)';
+    } else {
+      el.textContent = '✓ All data saved to Supabase (' + new Date().toLocaleTimeString() + ')';
+      el.style.color = 'var(--pri)';
+    }
+    return;
+  }
   var url = document.getElementById('gs-url-inline').value.trim();
   var statusEl = document.getElementById('gs-banner-status');
   var btn = document.getElementById('gs-banner-btn');
@@ -4820,7 +4861,7 @@ async function gsBannerTest() {
       statusEl.style.color = reloaded ? 'var(--pri)' : 'var(--dgr)';
       return;
     }
-    if ((GS.serverV || 1) < GS.EXPECTED_V) {
+    if (!SB.active && (GS.serverV || 1) < GS.EXPECTED_V) {
       statusEl.innerHTML = '⚠ NOT saving: your Google Script is an <b>older version</b> (v' + (GS.serverV||1) + ', app needs v' + GS.EXPECTED_V + '). Paste the newest Code.gs in Apps Script, press Ctrl+S, then Deploy → <b>New deployment</b>, and paste that new /exec URL here.';
       statusEl.style.color = 'var(--dgr)';
       return;
@@ -4830,11 +4871,12 @@ async function gsBannerTest() {
     var failed = await GS.saveAll();
     if (failed.length) {
       statusEl.innerHTML = '⚠ Could NOT save: <b>' + failed.join(', ') + '</b>. Keep this tab open — your data is still on screen. '
-        + (GS.serverV >= 2 ? 'Check your connection and press again.' : 'Your Apps Script needs the small update (Code.gs) to handle large saves — paste it, then press again.');
+        + (SB.active ? 'Check your connection and press again. ' + (SB.lastError||'')
+                     : (GS.serverV >= 2 ? 'Check your connection and press again.' : 'Your Apps Script needs the small update (Code.gs) to handle large saves — paste it, then press again.'));
       statusEl.style.color = 'var(--dgr)';
     } else {
-      statusEl.textContent = '✓ All data saved to Google Sheets (' +
-        new Date().toLocaleTimeString() + ')';
+      statusEl.textContent = '✓ All data saved to ' + (SB.active ? 'Supabase' : 'Google Sheets') +
+        ' (' + new Date().toLocaleTimeString() + ')';
       statusEl.style.color = 'var(--pri)';
     }
     return;
@@ -5927,6 +5969,7 @@ function saveDayWorker(){
     }
     if(localStorage.getItem('bt_backend')==='supabase' && SB.configured() && SB.signedIn()){
       SB.active=true; _sbBooted=true;
+      applyBackendBanner();
       SB.loadAll().then(function(ok){
         if(ok){ renderAll(); }
         else {
