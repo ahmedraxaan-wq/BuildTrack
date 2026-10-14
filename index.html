@@ -258,6 +258,23 @@ tr:hover td{background:var(--bg3)}
       <button class="btn bp" onclick="openModal('modal-roster')">+Add</button>
     </div>
   </div>
+  <div class="sec" style="margin-bottom:14px">
+    <div class="sh">
+      <span style="display:inline-flex;align-items:center;gap:8px">
+        <button class="btn bs" onclick="rosterMonthStep(-1)" style="font-size:12px;padding:3px 9px">‹</button>
+        <span class="st" id="cal-title" style="min-width:120px;text-align:center"></span>
+        <button class="btn bs" onclick="rosterMonthStep(1)" style="font-size:12px;padding:3px 9px">›</button>
+      </span>
+      <button class="btn bs" onclick="rosterMonthToday()" style="font-size:10px">This month</button>
+    </div>
+    <div id="cal-grid"></div>
+    <div id="cal-summary" style="font-size:11px;margin-top:8px"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:10px;color:var(--mut)">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--ok-bg);border:1px solid var(--ok-line);vertical-align:middle"></span> crew recorded</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--dgr-bg);border:1px solid var(--dgr-line);vertical-align:middle"></span> nothing recorded</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--bg3);border:1px solid var(--line);vertical-align:middle"></span> Friday / holiday</span>
+    </div>
+  </div>
   <div id="roster-holiday-note"></div>
   <div id="roster-info" class="nb"></div>
   <div id="roster-list"></div>
@@ -1714,8 +1731,80 @@ function siteCard(s){
 }
 
 // ─── ROSTER ───
+var _rosterMonth=null;
+function rosterMonthStep(n){
+  const base=(_rosterMonth||today().slice(0,7))+'-01';
+  const d=new Date(base);d.setMonth(d.getMonth()+n);
+  _rosterMonth=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);
+  renderRosterCalendar();
+}
+function rosterMonthToday(){_rosterMonth=today().slice(0,7);renderRosterCalendar();}
+function rosterPickDay(ds){
+  const el=document.getElementById('roster-date');if(!el)return;
+  el.value=ds;renderRoster();
+}
+// A month at a glance: which days have crew recorded, and which working
+// days have nothing — the ones easy to forget.
+function renderRosterCalendar(){
+  const grid=document.getElementById('cal-grid');if(!grid)return;
+  const sel=(document.getElementById('roster-date')||{}).value||today();
+  if(!_rosterMonth)_rosterMonth=sel.slice(0,7);
+  const ym=_rosterMonth, T=today();
+  const y=parseInt(ym.slice(0,4)), m=parseInt(ym.slice(5,7));
+  const first=new Date(y,m-1,1), days=new Date(y,m,0).getDate();
+  const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=MON[m-1]+' '+y;
+
+  // one pass over the roster for the whole month
+  const byDate={};
+  (D.roster||[]).forEach(r=>{
+    const d=String(r.date||'');
+    if(d.slice(0,7)!==ym)return;
+    const b=byDate[d]=byDate[d]||{n:0,cost:0,sites:{}};
+    b.n++;b.cost+=r.cost||0;b.sites[r.siteId]=1;
+  });
+
+  const head=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    .map(d=>`<div style="text-align:center;font-size:9px;color:var(--mut);font-weight:600;letter-spacing:0.03em;padding:2px 0">${d.toUpperCase()}</div>`).join('');
+  let cells='';
+  for(let i=0;i<first.getDay();i++)cells+='<div></div>';
+  let gaps=[];
+  for(let day=1;day<=days;day++){
+    const ds=ym+'-'+('0'+day).slice(-2);
+    const info=byDate[ds];
+    const hol=(D.holidays||[]).find(h=>h.date===ds);
+    const fri=isFriday(ds);
+    const future=ds>T;
+    const isSel=ds===sel, isToday=ds===T;
+    let bg='var(--bg2)', line='var(--line)', tx='var(--tx)', note='';
+    if(info){ bg='var(--ok-bg)'; line='var(--ok-line)'; note=`<div style="font-size:9px;color:var(--ok-tx);font-weight:600">${info.n}</div>`; }
+    else if(hol||fri){ bg='var(--bg3)'; line='var(--line)'; tx='var(--mut)'; note=`<div style="font-size:8px;color:var(--mut)">${hol?'hol':'Fri'}</div>`; }
+    else if(future){ bg='var(--bg2)'; tx='var(--mut)'; }
+    else { bg='var(--dgr-bg)'; line='var(--dgr-line)'; note='<div style="font-size:9px;color:var(--dgr)">—</div>'; gaps.push(day); }
+    cells+=`<div onclick="rosterPickDay('${ds}')" title="${ds}${info?' · '+info.n+' allocated · '+fmt(info.cost):''}"
+      style="cursor:pointer;background:${bg};border:1px solid ${isSel?'var(--pri)':line};${isSel?'box-shadow:0 0 0 1px var(--pri)':''};
+      border-radius:7px;padding:4px 2px;text-align:center;min-height:38px;display:flex;flex-direction:column;justify-content:center;gap:1px">
+      <div style="font-size:11px;font-weight:${isToday?'800':'500'};color:${tx}">${day}${isToday?'<span style="color:var(--pri)">·</span>':''}</div>
+      ${note}
+    </div>`;
+  }
+  grid.innerHTML=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${head}${cells}</div>`;
+
+  const sum=document.getElementById('cal-summary');
+  const recorded=Object.keys(byDate).length;
+  if(gaps.length){
+    sum.innerHTML=`<span style="color:var(--dgr)"><b>${gaps.length} day${gaps.length>1?'s':''} with nothing recorded</b></span>`
+      +` — ${gaps.map(d=>`<a onclick="rosterPickDay('${ym}-${('0'+d).slice(-2)}')" style="cursor:pointer;text-decoration:underline;color:var(--dgr)">${d}</a>`).join(', ')}`
+      +`<div style="color:var(--mut);margin-top:2px">${recorded} day${recorded===1?'':'s'} recorded this month. Fridays and holidays are not counted as gaps.</div>`;
+  } else {
+    sum.innerHTML=`<span style="color:var(--pri)">✓ Every working day this month has crew recorded</span>`
+      +`<span style="color:var(--mut)"> — ${recorded} day${recorded===1?'':'s'}.</span>`;
+  }
+}
 function renderRoster(){
   const date=document.getElementById('roster-date').value||today();
+  _rosterMonth=date.slice(0,7);
+  renderRosterCalendar();
   const isFri=isFriday(date);
   const hol=D.holidays.find(h=>h.date===date);
   const hn=document.getElementById('roster-holiday-note');
