@@ -593,7 +593,7 @@ tr:hover td{background:var(--bg3)}
 <!-- ROSTER -->
 <div class="mo" id="modal-roster"><div class="md" style="max-width:470px">
   <div class="mt">Allocate crew to site</div>
-  <div class="fg"><label>Date</label><input type="date" id="ra-date" onchange="popCrewChecklist()"></div>
+  <div class="fg"><label>Date</label><input type="date" id="ra-date" onchange="popCrewChecklist();rosterDateHint()"><div id="ra-date-hint" style="font-size:10px;margin-top:3px"></div></div>
   <div class="fg"><label>Worksite</label><select id="ra-site" onchange="popCrewChecklist();fillCrewWork()"></select></div>
   <div class="fg"><label>Working on</label><select id="ra-work"></select><div id="ra-work-hint" style="font-size:10px;color:var(--mut);margin-top:3px"></div></div>
   <div class="fg"><label>Crew — tick everyone working at this site</label>
@@ -713,7 +713,8 @@ tr:hover td{background:var(--bg3)}
   <div style="font-size:11px;color:var(--mut);margin-bottom:8px">They leave the on-site list and are filed under the work they were used for. Nothing returns to the warehouse; their cost stays counted on this site.</div>
   <div id="cm-list" style="font-size:11px;white-space:pre-wrap;background:var(--bg3);border-radius:8px;padding:9px 12px;margin-bottom:10px"></div>
   <div id="cm-warn" style="display:none;font-size:11px;color:var(--amb-tx);background:var(--amb-bg);border:1px solid var(--amb-line);border-radius:8px;padding:8px 12px;margin-bottom:10px"></div>
-  <div class="fg"><label>Used for which work</label><select id="cm-work"></select></div>
+  <div id="cm-tied" style="display:none;font-size:11px;color:var(--inf);background:var(--inf-bg);border-radius:8px;padding:8px 12px;margin-bottom:10px"></div>
+  <div class="fg" id="cm-work-wrap"><label>Used for which work</label><select id="cm-work"></select></div>
   <div class="ma"><button class="btn" onclick="closeModal('modal-consume')">Cancel</button><button class="btn bp" onclick="saveConsume()">✔ Mark used up</button></div>
 </div></div>
 <div class="mo" id="modal-return"><div class="md">
@@ -1258,8 +1259,9 @@ function openModal(id){
   if(id==='modal-roster'){
     const rd=document.getElementById('roster-date');
     document.getElementById('ra-date').value=(rd&&rd.value)||today();
-    document.getElementById('ra-site').innerHTML='<option value="">— choose site —</option>'+D.sites.filter(s=>s.status==='active').map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    fillRosterSites();
     popCrewChecklist();
+    rosterDateHint();
   }
   if(id==='modal-fee'){
     onFeeType(true);
@@ -1284,12 +1286,40 @@ function openCrewForSite(){
   window._preTickEmp=null;
   openModal('modal-roster');
   document.getElementById('ra-date').value=today();
-  if(D.activeSiteId)document.getElementById('ra-site').value=String(D.activeSiteId);
+  if(D.activeSiteId)fillRosterSites(D.activeSiteId);
   popCrewChecklist();
   fillCrewWork();
+  rosterDateHint();
 }
 // Defaults to the work in progress, so a finished work never picks up
 // today's labour — but stays changeable
+// Active sites first, but completed and scheduled ones stay selectable:
+// crew often has to be recorded for a day after the job has finished.
+function fillRosterSites(selectedId){
+  const sel=document.getElementById('ra-site');if(!sel)return;
+  const order={active:0,pending:1,done:2};
+  const sites=[...(D.sites||[])].sort((a,b)=>
+    (order[a.status]??3)-(order[b.status]??3) || String(a.name||'').localeCompare(String(b.name||'')));
+  const tag=s=>s.status==='done'?' (completed)':s.status==='pending'?' (scheduled)':'';
+  sel.innerHTML='<option value="">— choose site —</option>'
+    +sites.map(s=>`<option value="${s.id}">${s.name}${tag(s)}</option>`).join('');
+  if(selectedId!==undefined&&selectedId!==null)sel.value=String(selectedId);
+}
+// Spell out which day is being recorded, so a back-dated entry is
+// obvious rather than something you have to trust
+function rosterDateHint(){
+  const el=document.getElementById('ra-date-hint');if(!el)return;
+  const v=document.getElementById('ra-date').value;
+  if(!v){el.textContent='';return;}
+  const t=today();
+  const days=Math.round((new Date(v+'T00:00:00')-new Date(t+'T00:00:00'))/86400000);
+  const names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const wd=names[new Date(v+'T00:00:00').getDay()];
+  let when=days===0?'today':days===-1?'yesterday':days<0?Math.abs(days)+' days ago':days===1?'tomorrow':'in '+days+' days';
+  const back=days<0;
+  el.innerHTML='<span style="color:'+(back?'var(--amb-tx)':'var(--mut)')+'">'+wd+' · '+when
+    +(back?' — recording for a past day':'')+'</span>';
+}
 function fillCrewWork(){
   const sel=document.getElementById('ra-work');if(!sel)return;
   const siteId=parseInt(document.getElementById('ra-site').value);
@@ -1873,6 +1903,11 @@ function saveRosterMulti(){
   const siteId=parseInt(document.getElementById('ra-site').value);
   if(!date||!siteId){alert('Please choose a date and a worksite.');return;}
   const selected=[...document.querySelectorAll('.ra-emp-cb:checked')].map(cb=>parseInt(cb.value));
+  const _s=D.sites.find(x=>x.id===siteId);
+  if(_s&&_s.status==='pending'&&selected.length){
+    _s.status='active';
+    if(!_s.expectedStart)_s.expectedStart=date;
+  }
   const wsel=document.getElementById('ra-work');
   const chosenWork=wsel?wsel.value:'';
   setCrewForSiteDate(siteId,date,selected);
@@ -2118,10 +2153,17 @@ function renderDetailExtPurchases(s){
 }
 // Retried saves can append the same used-up records more than once.
 // These are pure history (no cost effect), so they can be repaired.
-function usedKey(e){return [e.workId||'',e.matKey||'',e.qty||0,e.date||''].join('|');}
+// The same material, same quantity, against the same work is a repeat
+// filing whatever day it happened on. Keying on the date hid exactly
+// the duplicates that inflated the archive.
+function usedKey(e){return [e.workId||'',e.matKey||'',e.qty||0].join('|');}
 function usedDuplicates(s){
   const seen={},dups=[];
-  (s.log||[]).forEach(e=>{if(e.type!=='used')return;const k=usedKey(e);if(seen[k])dups.push(e);else seen[k]=1;});
+  [...(s.log||[])]
+    .map((e,i)=>({e,i}))
+    .filter(x=>x.e.type==='used')
+    .sort((a,b)=>String(a.e.date||'').localeCompare(String(b.e.date||''))||a.i-b.i)
+    .forEach(x=>{const k=usedKey(x.e);if(seen[k])dups.push(x.e);else seen[k]=1;});   // keep the earliest
   return dups;
 }
 function cleanUsedDuplicates(){
@@ -2139,13 +2181,15 @@ function cleanUsedDuplicates(){
   GS.save('sites');
   renderDetailSiteStock(s);renderDetailLog(s);
 }
-function removeUsedGroup(workId){
+function removeUsedGroup(workId,date){
   const s=D.sites.find(x=>String(x.id)===String(D.activeSiteId));if(!s)return;
-  const hits=(s.log||[]).filter(e=>e.type==='used'&&String(e.workId||'')===String(workId||''));
+  const match=e=>e.type==='used'&&String(e.workId||'')===String(workId||'')
+    &&(date===undefined||String(e.date||'')===String(date||''));
+  const hits=(s.log||[]).filter(match);
   if(!hits.length)return;
   const name=hits[0].workDesc||'this work';
-  if(!confirm('Delete all '+hits.length+' used-up record'+(hits.length>1?'s':'')+' filed under "'+name+'"?\n\nNothing returns to the warehouse and no cost changes — you are only clearing the history entries.'))return;
-  s.log=(s.log||[]).filter(e=>!(e.type==='used'&&String(e.workId||'')===String(workId||'')));
+  if(!confirm('Delete this filing of '+hits.length+' material'+(hits.length>1?'s':'')+' under "'+name+'"'+(date?' on '+date:'')+'?\n\nNothing returns to the warehouse and no cost changes — you are only clearing the history entry.'))return;
+  s.log=(s.log||[]).filter(e=>!match(e));
   GS.save('sites');
   renderDetailSiteStock(s);renderDetailLog(s);
 }
@@ -2167,8 +2211,8 @@ function renderDetailSiteStock(s){
   if(used.length){
     const groups={};
     used.forEach(e=>{
-      const key=e.workId||'';
-      const g=groups[key]=groups[key]||{name:e.workDesc||wName(e.workId)||'Not tied to a work',items:{},date:''};
+      const key=(e.workId||'')+'@@'+(e.date||'');
+      const g=groups[key]=groups[key]||{name:e.workDesc||wName(e.workId)||'Not tied to a work',items:{},date:'',workId:e.workId||''};
       const live=D.stocks[e.matKey]||{};
       const nm=e.matName||live.name||e.matKey;
       const un=e.unit||live.unit||'';
@@ -2183,7 +2227,7 @@ function renderDetailSiteStock(s){
         return`<div class="dp" style="padding:8px 12px;margin-bottom:6px;background:var(--bg3)">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
             <div style="font-size:11px;font-weight:600;flex:1">${g.name}<span class="badge bd2" style="font-size:9px;margin-left:6px">used up${g.date?' '+g.date:''}</span></div>
-            <button class="btn bs" style="font-size:10px" onclick="removeUsedGroup('${k}')">✕</button>
+            <button class="btn bs" style="font-size:10px" onclick="removeUsedGroup('${g.workId}','${g.date}')">✕</button>
           </div>
           <div style="font-size:10px;color:var(--mut);margin-top:3px">${Object.values(g.items).map(i=>i.qty+' '+i.unit+' '+i.name).join(' · ')}</div>
         </div>`;}).join('')+'</div>';
@@ -2505,6 +2549,22 @@ function openConsume(title,lines){
   const st=siteStats(s);
   document.getElementById('cm-title').textContent=title;
   document.getElementById('cm-list').textContent=lines;
+  const tiedTo={}; let untied=0;
+  (_consumeKeys||[]).forEach(k=>{
+    const id=(s.ssWork||{})[k];
+    const wk=id?(s.works||[]).find(x=>String(x.id)===String(id)):null;
+    if(wk){tiedTo[wk.desc]=(tiedTo[wk.desc]||0)+1;}else untied++;
+  });
+  const tn=document.getElementById('cm-tied');
+  if(tn){
+    const parts=Object.keys(tiedTo).map(n=>tiedTo[n]+' already tied to <b>'+n+'</b>');
+    tn.innerHTML=parts.length
+      ? parts.join(' · ')+(untied?' · '+untied+' not tied to any work — filed under your choice below':'')
+      : '';
+    tn.style.display=parts.length?'':'none';
+  }
+  const cw=document.getElementById('cm-work-wrap');
+  if(cw)cw.style.display=untied?'':'none';
   document.getElementById('cm-warn').style.display=st.unsettledAmt>0?'':'none';
   document.getElementById('cm-warn').textContent='⚠ '+fmt(st.unsettledAmt)+' of warehouse materials are still unsettled — their cost stays on this site.';
   // Default: the work these materials most likely served — the last one
@@ -2522,12 +2582,15 @@ function saveConsume(){
   if(!s.ss||typeof s.ss!=='object')s.ss={};
   if(typeof s.ssWork==='string'){try{s.ssWork=JSON.parse(s.ssWork);}catch(e){s.ssWork={};}}
   if(!s.ssWork||typeof s.ssWork!=='object')s.ssWork={};
-  const wid=document.getElementById('cm-work').value;
-  const w=(s.works||[]).find(x=>String(x.id)===String(wid));
+  const fallback=document.getElementById('cm-work').value;
   let skipped=0;
   _consumeKeys.forEach(k=>{
     const qty=(s.ss||{})[k]||0;if(!(qty>0))return;
     const _m=D.stocks[k]||{};
+    // A material brought in for a specific work belongs to that work —
+    // the selector only covers the ones that were never tied to one
+    const wid=(s.ssWork||{})[k]||fallback;
+    const w=(s.works||[]).find(x=>String(x.id)===String(wid));
     const entry={type:'used',date:today(),matKey:k,qty,matName:_m.name||k,unit:_m.unit||'',
       workId:wid||'',workDesc:w?w.desc:''};
     // Never file an identical record twice — that is what inflated the
